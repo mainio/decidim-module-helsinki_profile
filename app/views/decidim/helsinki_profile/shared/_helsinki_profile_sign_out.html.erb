@@ -1,0 +1,26 @@
+<% if session["decidim-helsinkiprofile.signed_in"] %>
+  <% content_for(:js_content) do %>
+    <script type="text/javascript">
+    (function() {
+      $(document).ready(function() {
+        // For re-authorization, sign out from Helsinki profile in order to
+        // allow the user to sign in again.
+        $("#authorizationModal").on("open.zf.reveal", function() {
+          setTimeout(() => {
+            $("#authorizationModal a[href^='/helsinkiprofile_idp/']").on("click.helsinkiprofile", function(ev) {
+              var $link = $(".sign-out-link");
+
+              if ($link.length > 0) {
+                ev.preventDefault();
+                ev.stopPropagation();
+
+                $(".sign-out-link")[0].click();
+              }
+            });
+          }, 500);
+        });
+      });
+    })(jQuery);
+    </script>
+  <% end %>
+<% end %>

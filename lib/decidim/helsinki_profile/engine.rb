@@ -38,6 +38,13 @@ module Decidim
           )
 
           match(
+            "/users/auth/helsinki/silent",
+            to: "omniauth_callbacks#helsinki_silent",
+            as: "user_helsinki_omniauth_silent",
+            via: [:get, :post]
+          )
+
+          match(
             "/users/auth/helsinki/logout",
             to: "sessions#helsinki_logout",
             as: "user_helsinki_omniauth_logout",

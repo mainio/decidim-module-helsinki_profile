@@ -62,49 +62,12 @@ module OmniAuth
         end_session_uri.to_s
       end
 
-      def other_phase
-        return silent_phase if silent_path_pattern.match?(current_path)
-
-        super
-      end
-
-      def silent_phase
-        options.issuer = issuer if options.issuer.to_s.empty?
-        discover!
-
-        opts = {
-          response_type: options.response_type,
-          response_mode: options.response_mode,
-          scope: options.scope,
-          state: new_state,
-          login_hint: params["login_hint"],
-          ui_locales: params["ui_locales"],
-          claims_locales: params["claims_locales"],
-          prompt: "none",
-          nonce: (new_nonce if options.send_nonce),
-          hd: options.hd,
-          acr_values: options.acr_values
-        }
-
-        opts.merge!(options.extra_authorize_params) unless options.extra_authorize_params.empty?
-
-        options.allow_authorize_params.each do |key|
-          opts[key] = request.params[key.to_s] unless opts.has_key?(key)
-        end
-
-        redirect client.authorization_uri(opts.compact)
-      end
-
       private
 
       def verify_id_token!(id_token)
         session["omniauth-helsinki.id_token"] = id_token if id_token
 
         super
-      end
-
-      def silent_path_pattern
-        @silent_path_pattern ||= %r{\A#{Regexp.quote(request_path)}/silent}
       end
 
       def encoded_post_logout_query

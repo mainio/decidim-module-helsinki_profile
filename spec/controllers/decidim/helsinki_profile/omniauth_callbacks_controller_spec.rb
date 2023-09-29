@@ -244,4 +244,25 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
       end
     end
   end
+
+  describe "GET /users/auth/helsinki/silent" do
+    it "responds with no content" do
+      get("/users/auth/helsinki/silent")
+      expect(response.code).to eq("204")
+    end
+
+    context "when the user is signed in" do
+      let(:user) { create(:user, :confirmed, organization: organization) }
+
+      before do
+        sign_in user
+      end
+
+      it "responds with success" do
+        get("/users/auth/helsinki/silent")
+        expect(response.code).to eq("200")
+        expect(response.body).to eq("Success")
+      end
+    end
+  end
 end

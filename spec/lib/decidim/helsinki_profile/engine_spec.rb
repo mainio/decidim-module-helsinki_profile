@@ -29,9 +29,11 @@ describe Decidim::HelsinkiProfile::Engine do
             scheme: "https",
             secret: "abcdef1234567890"
           },
+          name: :helsinki,
           issuer: "https://oicd.example.org/auth/realms/helsinki-tunnistus",
           post_logout_redirect_uri: "http://localhost:3000/users/auth/helsinki/post_logout",
-          scope: [:openid, :email, :profile]
+          scope: [:openid, :email, :profile],
+          strategy_class: OmniAuth::Strategies::Helsinki
         }
       )
       block.call(config)

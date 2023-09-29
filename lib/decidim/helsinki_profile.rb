@@ -41,6 +41,16 @@ module Decidim
       [:openid, :email, :profile]
     end
 
+    # Allows changing the auth service name in case we need to perform a
+    # "handover" process from the legacy authentication server. Once Helsinki
+    # profile is ready to be used, this configuration is no longer needed.
+    #
+    # This needs to happen within the `:before_configuration` hook inside the
+    # application.
+    config_accessor :auth_service_name do
+      "helsinki"
+    end
+
     # Allows customizing the authorization workflow e.g. for adding custom
     # workflow options or configuring an action authorizer for the
     # particular needs.
@@ -70,9 +80,9 @@ module Decidim
     end
 
     def self.configured?
-      return false unless Rails.application.secrets.omniauth.has_key?(:helsinki)
+      return false if omniauth_secrets.blank?
 
-      Rails.application.secrets.omniauth[:helsinki][:enabled]
+      omniauth_secrets[:enabled]
     end
 
     def self.gdpr_scopes
@@ -80,7 +90,7 @@ module Decidim
 
       # See:
       # https://profile-api.dev.hel.ninja/docs/gdpr-api/
-      gdpr_uri = Rails.application.secrets.omniauth[:helsinki][:gdpr_uri]
+      gdpr_uri = omniauth_secrets[:gdpr_uri]
       {
         query: "#{gdpr_uri}.gdprquery",
         delete: "#{gdpr_uri}.gdprdelete"
@@ -105,14 +115,35 @@ module Decidim
       authenticator_class.new(organization, oauth_hash)
     end
 
+    def self.omniauth_secrets
+      @omniauth_secrets ||= begin
+        configured_key = auth_service_name.to_sym
+        Rails.application.secrets[:omniauth][configured_key] || Rails.application.secrets[:omniauth][:helsinki]
+      end
+    end
+
+    def self.fix_omniauth_config!
+      return unless configured?
+
+      service_name = auth_service_name.to_sym
+      return if service_name == :helsinki
+
+      Rails.application.secrets[:omniauth].transform_keys! do |key|
+        key == :helsinki ? service_name : key
+      end
+    end
+
     def self.omniauth_settings
-      secrets = Rails.application.secrets.omniauth[:helsinki]
+      secrets = omniauth_secrets
       server_uri = secrets[:auth_uri]
       client_id = secrets[:auth_client_id]
       client_secret = secrets[:auth_client_secret]
+      service_name = auth_service_name
 
       auth_uri = URI.parse(server_uri)
       {
+        name: service_name.to_sym,
+        strategy_class: OmniAuth::Strategies::Helsinki,
         issuer: server_uri,
         scope: auth_scopes,
         client_options: {
@@ -121,9 +152,9 @@ module Decidim
           host: auth_uri.host,
           identifier: client_id,
           secret: client_secret,
-          redirect_uri: "#{application_host}/users/auth/helsinki/callback"
+          redirect_uri: "#{application_host}/users/auth/#{service_name}/callback"
         },
-        post_logout_redirect_uri: "#{application_host}/users/auth/helsinki/post_logout"
+        post_logout_redirect_uri: "#{application_host}/users/auth/#{service_name}/post_logout"
       }
     end
 

@@ -23,36 +23,38 @@ module Decidim
           # these routes to the local callbacks controller instead of the
           # Decidim core.
           # See: https://git.io/fjDz1
+          service_name = Decidim::HelsinkiProfile.auth_service_name
+
           match(
-            "/users/auth/helsinki",
+            "/users/auth/#{service_name}",
             to: "omniauth_callbacks#passthru",
             as: "user_helsinki_omniauth_authorize",
             via: [:get, :post]
           )
 
           match(
-            "/users/auth/helsinki/callback",
+            "/users/auth/#{service_name}/callback",
             to: "omniauth_callbacks#helsinki",
             as: "user_helsinki_omniauth_callback",
             via: [:get, :post]
           )
 
           match(
-            "/users/auth/helsinki/silent",
+            "/users/auth/#{service_name}/silent",
             to: "omniauth_callbacks#helsinki_silent",
             as: "user_helsinki_omniauth_silent",
             via: [:get, :post]
           )
 
           match(
-            "/users/auth/helsinki/logout",
+            "/users/auth/#{service_name}/logout",
             to: "sessions#helsinki_logout",
             as: "user_helsinki_omniauth_logout",
             via: [:get, :post]
           )
 
           match(
-            "/users/auth/helsinki/post_logout",
+            "/users/auth/#{service_name}/post_logout",
             to: "sessions#post_logout",
             as: "user_helsinki_omniauth_post_logout",
             via: [:get]
@@ -72,12 +74,26 @@ module Decidim
       end
 
       initializer "decidim_helsinki_profile.mount_routes", before: :add_routing_paths do
+        # Note this is important as it fixes the secrets before the default
+        # routes are mounted in case the service name is changed to something
+        # else than "helsinki". If this is not done, the default Omniauth routes
+        # would be mounted with the default name.
+        Decidim::HelsinkiProfile.fix_omniauth_config!
+
         # Mount the engine routes to Decidim::Core::Engine because otherwise
         # they would not get mounted properly. Note also that we need to prepend
         # the routes in order for them to override Decidim's own routes for the
         # "helsinki profile" authentication.
         Decidim::Core::Engine.routes.prepend do
           mount Decidim::HelsinkiProfile::Engine => "/"
+        end
+      end
+
+      initializer "decidim_helsinki_profile.reload" do
+        ActiveSupport.on_load :active_record do
+          # This is needed for code reloading. Otherwise the Rails secrets are
+          # not modified.
+          Decidim::HelsinkiProfile.fix_omniauth_config!
         end
       end
 
@@ -94,9 +110,10 @@ module Decidim
         OmniAuth.config.request_validation_phase = ::OmniAuth::RailsCsrfProtection::TokenVerifier.new
 
         # Configure the OmniAuth strategy for Devise
+        service_name = Decidim::HelsinkiProfile.auth_service_name
         ::Devise.setup do |config|
           config.omniauth(
-            :helsinki,
+            service_name.to_sym,
             Decidim::HelsinkiProfile.omniauth_settings
           )
         end
@@ -106,7 +123,8 @@ module Decidim
         # up in an ActionController::InvalidAuthenticityToken exception.
         devise_failure_app = OmniAuth.config.on_failure
         OmniAuth.config.on_failure = proc do |env|
-          if env["PATH_INFO"] =~ %r{^/users/auth/helsinki(/.*)?}
+          service_name = Decidim::HelsinkiProfile.auth_service_name
+          if env["PATH_INFO"] =~ %r{^/users/auth/#{service_name}(/.*)?}
             env["devise.mapping"] = ::Devise.mappings[:user]
             Decidim::HelsinkiProfile::OmniauthCallbacksController.action(
               :failure

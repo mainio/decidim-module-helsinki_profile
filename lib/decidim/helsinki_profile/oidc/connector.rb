@@ -32,7 +32,7 @@ module Decidim
 
           raise InvalidTokenError unless id_token
 
-          client_id = Rails.application.secrets.omniauth[:helsinki]["#{server}_client_id".to_sym]
+          client_id = Decidim::HelsinkiProfile.omniauth_secrets["#{server}_client_id".to_sym]
           id_token.verify!(
             issuer: config.issuer,
             audience: client_id,
@@ -74,7 +74,7 @@ module Decidim
 
           case jwt.algorithm.to_sym
           when :HS256, :HS384, :HS512
-            secret = Rails.application.secrets.omniauth[:helsinki]["#{server}_client_secret".to_sym]
+            secret = Decidim::HelsinkiProfile.omniauth_secrets["#{server}_client_secret".to_sym]
             jwt.verify!(secret)
             return ::OpenIDConnect::ResponseObject::IdToken.new(jwt)
           else
@@ -104,7 +104,7 @@ module Decidim
         def discover!
           raise NotConfiguredError unless Decidim::HelsinkiProfile.configured?
 
-          server_uri = Rails.application.secrets.omniauth[:helsinki]["#{server}_uri".to_sym]
+          server_uri = Decidim::HelsinkiProfile.omniauth_secrets["#{server}_uri".to_sym]
           Decidim::HelsinkiProfile.discovery_request(server_uri) do
             OpenIDConnect::Discovery::Provider::Config.discover!(server_uri)
           end

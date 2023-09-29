@@ -81,7 +81,7 @@ describe Decidim::HelsinkiProfile::GdprApi::V1::ProfilesController, type: :contr
     end
 
     context "when the token is signed with the client secret" do
-      let(:jwt_key) { Rails.application.secrets.omniauth[:helsinki][:gdpr_client_secret] }
+      let(:jwt_key) { Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_client_secret] }
 
       [:HS256, :HS384, :HS512].each do |alg|
         context "with #{alg}" do

@@ -5,6 +5,11 @@ module Decidim
     module Test
       class Runtime
         def self.initialize
+          # When running the rake tasks for the test app, e.g. migrations, this
+          # would fail because they are not using the spec helper that requires
+          # the test dependencies.
+          return unless defined?(Decidim::HelsinkiProfile::Test::OidcServer)
+
           Decidim::HelsinkiProfile::Test::OidcServer.register(
             :auth,
             "https://oicd.example.org/auth/realms/helsinki-tunnistus"

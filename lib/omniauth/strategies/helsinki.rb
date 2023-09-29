@@ -62,12 +62,22 @@ module OmniAuth
         end_session_uri.to_s
       end
 
+      def other_phase
+        return callback_phase if silent_path_pattern.match?(current_path)
+
+        super
+      end
+
       private
 
       def verify_id_token!(id_token)
         session["omniauth-helsinki.id_token"] = id_token if id_token
 
         super
+      end
+
+      def silent_path_pattern
+        @silent_path_pattern ||= %r{\A#{Regexp.quote(request_path)}/silent}
       end
 
       def encoded_post_logout_query

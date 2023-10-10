@@ -18,6 +18,7 @@ describe Decidim::HelsinkiProfile::Engine do
   it "configures the Helsinki profile omniauth strategy for Devise" do
     expect(Devise).to receive(:setup) do |&block|
       config = double
+      secrets = Rails.application.secrets[:omniauth][:helsinki]
       expect(config).to receive(:omniauth).with(
         :helsinki,
         {
@@ -32,7 +33,7 @@ describe Decidim::HelsinkiProfile::Engine do
           name: :helsinki,
           issuer: "https://oicd.example.org/auth/realms/helsinki-tunnistus",
           post_logout_redirect_uri: "http://localhost:3000/users/auth/helsinki/post_logout",
-          scope: [:openid, :email, :profile],
+          scope: [:openid, :email, :profile, "https://api.hel.fi/auth/helsinkiprofile", secrets[:gdpr_uri]],
           strategy_class: OmniAuth::Strategies::Helsinki
         }
       )

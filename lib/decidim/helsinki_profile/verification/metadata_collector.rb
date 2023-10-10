@@ -5,27 +5,29 @@ module Decidim
     module Verification
       class MetadataCollector
         def initialize(raw_info)
-          @raw_info = raw_info
+          @raw_info = raw_info[:oauth]
+          @token_info = raw_info[:token]
+          @gdpr_info = raw_info[:gdpr] || {}
         end
 
         def metadata
           {
             service: authentication_method,
-            name: raw_info[:name],
-            first_name: raw_info[:first_name] || raw_info[:given_name],
-            given_name: raw_info[:given_name],
-            family_name: raw_info[:family_name] || raw_info[:last_name],
+            name: full_name,
+            first_name: verified_personal_info[:first_name] || gdpr_info[:first_name] || raw_info[:first_name] || raw_info[:given_name],
+            given_name: verified_personal_info[:given_name] || raw_info[:given_name],
+            last_name: verified_personal_info[:last_name] || gdpr_info[:last_name] || raw_info[:family_name] || raw_info[:last_name],
             ad_groups: raw_info[:ad_groups]
           }.merge(identity_metadata)
         end
 
-        # Note: for the time being, the identity metadata is missing
-        # municipality and postal code information at this point since this data
-        # does not seem to be available. However, this would be eventually
-        # needed in order to verify that only people from a certain municipality
-        # can vote.
-        #
-        # The other data collected here is needed for the following purposes:
+        # The data collected here is needed for the following purposes:
+        # - municipality
+        #   * For checking the person is eligible for voting (limited
+        #     municipality)
+        # - postal_code
+        #   * For providing the correct voting area for the person (customer
+        #     request)
         # - date_of_birth
         #   * For checking the person is eligible for voting (minimum voting
         #     age)
@@ -33,11 +35,17 @@ module Decidim
         # - gender
         #   * Statistics about the voters (customer request)
         def identity_metadata
-          return {} if national_id_num.blank?
+          base_data = {
+            postal_code: postal_code,
+            municipality: verified_personal_info[:municipality_of_residence_number],
+            permanent_address: verified_personal_info[:permanent_address].present?
+          }.compact
+
+          return base_data if national_id_num.blank?
 
           hetu = Henkilotunnus::Hetu.new(national_id_num)
           valid_hetu = hetu.send(:valid_format?) && hetu.send(:valid_checksum?)
-          return {} unless valid_hetu
+          return base_data unless valid_hetu
 
           gender =
             if hetu.gender_neutral?
@@ -49,11 +57,11 @@ module Decidim
           # `.to_s` returns an ISO 8601 formatted string (YYYY-MM-DD for dates)
           date_of_birth = hetu.date_of_birth.to_s
 
-          {
+          base_data.merge(
             gender: gender,
             date_of_birth: date_of_birth,
             pin_digest: national_id_digest
-          }
+          )
         end
 
         # Digested format of the person's identifier unique to the person.
@@ -89,18 +97,37 @@ module Decidim
 
         protected
 
-        attr_reader :raw_info
+        attr_reader :raw_info, :token_info, :gdpr_info
 
         # One of following:
         # - suomi_fi
         # - heltunnistus_suomi_fi
         def authentication_method
           # Authentication Method Reference (amr)
-          Array(raw_info[:amr]).compact.presence
+          Array(token_info[:amr]).compact.presence
+        end
+
+        def full_name
+          if verified_personal_info.present?
+            parts = [:first_name, :last_name].map { |key| verified_personal_info[key] }.compact
+            return parts.join(" ") unless parts.empty?
+          end
+
+          raw_info[:name]
         end
 
         def national_id_num
-          raw_info[:national_id_num]
+          verified_personal_info[:national_identification_number] || raw_info[:national_id_num]
+        end
+
+        def verified_personal_info
+          gdpr_info[:verified_personal_information] || {}
+        end
+
+        def postal_code
+          return unless verified_personal_info[:permanent_address]
+
+          verified_personal_info[:permanent_address][:postal_code]
         end
       end
     end

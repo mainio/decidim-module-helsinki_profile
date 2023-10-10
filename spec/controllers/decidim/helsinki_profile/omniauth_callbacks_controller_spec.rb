@@ -5,73 +5,81 @@ require "spec_helper"
 describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request do
   let(:organization) { create(:organization) }
 
-  let(:uid) { SecureRandom.uuid }
+  # let(:uid) { SecureRandom.uuid }
   let(:email) { nil }
   let(:email_verified) { false }
-  let(:name) { "#{given_name} #{family_name}" }
-  let(:given_name) { "Jack" }
-  let(:family_name) { "Bauer" }
+  let(:name) { "#{given_name} #{last_name}" }
+  let(:given_name) { profile[:first_name] }
+  let(:last_name) { profile[:last_name] }
   let(:amr) { ["suomi_fi"] }
 
-  let(:oauth_hash) do
+  let(:auth_server) { Decidim::HelsinkiProfile::Test::OidcServer.get(:auth) }
+  let(:gdpr_api) { Decidim::HelsinkiProfile::Test::GdprGraphql::Server.instance }
+  let(:profile) { create(:helsinki_profile_person) }
+  let(:token_sub) { profile[:id] }
+
+  # let(:oauth_hash) do
+  #   {
+  #     provider: "helsinki",
+  #     uid: uid,
+  #     info: oauth_info,
+  #     extra: { raw_info: oauth_info.merge(oauth_extra) }
+  #   }
+  # end
+  # let(:oauth_info) do
+  #   {
+  #     email: email,
+  #     email_verified: email_verified,
+  #     name: name,
+  #     given_name: given_name,
+  #     last_name: last_name,
+  #     amr: amr
+  #   }
+  # end
+  # let(:oauth_extra) do
+  #   {
+  #     national_id_num: "010400A901X"
+  #   }
+  # end
+
+  let(:request_args) do
+    if session
+      session.each do |key, val|
+        request.session[key.to_s] = val
+      end
+    end
+
     {
-      provider: "helsinki",
-      uid: uid,
-      info: oauth_info,
-      extra: { raw_info: oauth_info.merge(oauth_extra) }
+      env: {
+        "rack.session" => request.session,
+        "rack.session.options" => request.session.options
+      }
     }
   end
-  let(:oauth_info) do
-    {
-      email: email,
-      email_verified: email_verified,
-      name: name,
-      given_name: given_name,
-      family_name: family_name,
-      amr: amr
-    }
-  end
-  let(:oauth_extra) do
-    {
-      national_id_num: "010400A901X"
-    }
-  end
+  let(:omniauth_state) { request.session["omniauth.state"] }
+  let(:code) { SecureRandom.hex(16) }
 
   before do
-    OmniAuth.config.test_mode = true
-    OmniAuth.config.add_mock(:helsinki, oauth_hash)
+    gdpr_api.register_profile(profile)
 
     # Set the correct host
     host! organization.host
-  end
 
-  after do
-    OmniAuth.config.test_mode = false
+    # Do the initial authentication "request phase" call in order to initialize
+    # the session variables to validate the callback request properly. This
+    # tests the authentication flow sort of "end-to-end" (served by the local
+    # dummy "servers") in order to generate the tokens properly through the
+    # Omniauth strategy and initiate the GDPR API requests correctly.
+    post("/users/auth/helsinki")
   end
 
   describe "GET /users/auth/helsinki/callback" do
-    let(:code) { SecureRandom.hex(16) }
-    let(:state) { SecureRandom.hex(16) }
-
     context "when user isn't signed in" do
       let(:session) { nil }
 
       before do
-        request_args = {}
-        if session
-          # Do a mock request in order to create a session
-          get "/"
-          session.each do |key, val|
-            request.session[key.to_s] = val
-          end
-          request_args[:env] = {
-            "rack.session" => request.session,
-            "rack.session.options" => request.session.options
-          }
-        end
-
         get(
-          "/users/auth/helsinki/callback?code=#{code}&state=#{state}",
+          "/users/auth/helsinki/callback?code=#{code}&state=#{omniauth_state}",
           **request_args
         )
       end
@@ -84,7 +92,7 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
         expect(authorization.metadata["service"]).to eq(amr)
         expect(authorization.metadata["first_name"]).to eq(given_name)
         expect(authorization.metadata["given_name"]).to eq(given_name)
-        expect(authorization.metadata["family_name"]).to eq(family_name)
+        expect(authorization.metadata["last_name"]).to eq(last_name)
       end
 
       # Decidim core would want to redirect to the verifications path on the
@@ -110,25 +118,17 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
     end
 
     context "when storing the email address" do
-      let(:email) { "oauth.email@example.org" }
-      let(:authenticator) do
-        Decidim::HelsinkiProfile.authenticator_class.new(organization, oauth_hash)
-      end
+      let(:email) { profile.dig(:primary_email, :email) }
 
-      before do
-        allow(Decidim::HelsinkiProfile).to receive(:authenticator_for).and_return(authenticator)
-      end
-
-      context "when email is confirmed according to the authenticator" do
-        let(:email_verified) { true }
-
+      context "when email is verified according to the authenticator" do
         before do
           allow(Decidim::HelsinkiProfile).to receive(:untrusted_email_providers).and_return([])
         end
 
-        it "creates the user account with the confirmed email address" do
+        it "creates the user account with the verified email address" do
           get(
-            "/users/auth/helsinki/callback?code=#{code}&state=#{state}"
+            "/users/auth/helsinki/callback?code=#{code}&state=#{omniauth_state}",
+            **request_args
           )
 
           user = Decidim::User.last
@@ -137,10 +137,15 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
         end
       end
 
-      context "when email is unconfirmed according to the authenticator" do
+      context "when email is unverified according to the authenticator" do
+        let(:profile) do
+          create(:helsinki_profile_person, primary_email: create(:helsinki_profile_email, :primary, :unverified))
+        end
+
         it "creates the user account with the confirmed email address" do
           get(
-            "/users/auth/helsinki/callback?code=#{code}&state=#{state}"
+            "/users/auth/helsinki/callback?code=#{code}&state=#{omniauth_state}",
+            **request_args
           )
 
           user = Decidim::User.last
@@ -157,22 +162,9 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
       end
 
       before do
-        request_args = {}
-        if session
-          # Do a mock request in order to create a session
-          get "/"
-          session.each do |key, val|
-            request.session[key.to_s] = val
-          end
-          request_args[:env] = {
-            "rack.session" => request.session,
-            "rack.session.options" => request.session.options
-          }
-        end
-
         sign_in confirmed_user
         get(
-          "/users/auth/helsinki/callback?code=#{code}&state=#{state}",
+          "/users/auth/helsinki/callback?code=#{code}&state=#{omniauth_state}",
           **request_args
         )
       end
@@ -208,7 +200,8 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
         confirmed_user.remember_me!
         expect(confirmed_user.remember_created_at?).to be(true)
         get(
-          "/users/auth/helsinki/callback?code=#{code}&state=#{state}"
+          "/users/auth/helsinki/callback?code=#{code}&state=#{omniauth_state}",
+          **request_args
         )
       end
 
@@ -222,12 +215,13 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
     context "when identity is bound to another user" do
       let(:confirmed_user) { create(:user, :confirmed, organization: organization) }
       let(:another_user) { create(:user, :confirmed, organization: organization) }
-      let!(:identity) { create(:identity, user: another_user, provider: "helsinki", uid: uid, organization: organization) }
+      let!(:identity) { create(:identity, user: another_user, provider: "helsinki", uid: profile[:id], organization: organization) }
 
       before do
         sign_in confirmed_user
         get(
-          "/users/auth/helsinki/callback?code=#{code}&state=#{state}"
+          "/users/auth/helsinki/callback?code=#{code}&state=#{omniauth_state}",
+          **request_args
         )
       end
 
@@ -247,7 +241,7 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
 
   describe "GET /users/auth/helsinki/silent" do
     it "responds with no content" do
-      get("/users/auth/helsinki/silent")
+      get("/users/auth/helsinki/silent?code=#{code}&state=#{omniauth_state}", **request_args)
       expect(response.code).to eq("204")
     end
 
@@ -259,7 +253,7 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
       end
 
       it "responds with success" do
-        get("/users/auth/helsinki/silent")
+        get("/users/auth/helsinki/silent?code=#{code}&state=#{omniauth_state}", **request_args)
         expect(response.code).to eq("200")
         expect(response.body).to eq("Success")
       end

@@ -18,8 +18,6 @@ module Decidim
 
     include ActiveSupport::Configurable
 
-    @configured = false
-
     # Defines the email domain for the auto-generated email addresses for the
     # user accounts. This is only used if the user does not have an email
     # address returned by HelsinkiProfile. Not all people have email address
@@ -39,6 +37,13 @@ module Decidim
     # See: https://openid.net/specs/openid-connect-basic-1_0.html#Scopes
     config_accessor :auth_scopes do
       [:openid, :email, :profile]
+    end
+
+    # Set this to `false` in case the Helsinki profile handover has not been
+    # completed. Otherwise the authentication requests may fail against the
+    # legacy authentication server due to invalid scopes.
+    config_accessor :gdpr_authorization do
+      true
     end
 
     # Allows changing the auth service name in case we need to perform a
@@ -82,7 +87,7 @@ module Decidim
     def self.configured?
       return false if omniauth_secrets.blank?
 
-      omniauth_secrets[:enabled]
+      omniauth_secrets[:enabled] && omniauth_secrets[:auth_uri].present?
     end
 
     def self.gdpr_scopes
@@ -140,12 +145,19 @@ module Decidim
       client_secret = secrets[:auth_client_secret]
       service_name = auth_service_name
 
+      scope =
+        if gdpr_authorization
+          auth_scopes + ["https://api.hel.fi/auth/helsinkiprofile", secrets[:gdpr_uri]]
+        else
+          auth_scopes
+        end
+
       auth_uri = URI.parse(server_uri)
       {
         name: service_name.to_sym,
         strategy_class: OmniAuth::Strategies::Helsinki,
         issuer: server_uri,
-        scope: auth_scopes,
+        scope: scope,
         client_options: {
           port: auth_uri.port,
           scheme: auth_uri.scheme,

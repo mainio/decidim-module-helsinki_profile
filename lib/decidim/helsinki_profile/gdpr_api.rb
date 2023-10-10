@@ -3,9 +3,16 @@
 module Decidim
   module HelsinkiProfile
     module GdprApi
+      autoload :Client, "decidim/helsinki_profile/gdpr_api/client"
       autoload :UserSerializer, "decidim/helsinki_profile/gdpr_api/user_serializer"
 
-      class UnknownUserError < StandardError; end
+      class GdprApiError < StandardError; end
+
+      class UnknownUserError < GdprApiError; end
+
+      class AuthenticationError < GdprApiError; end
+
+      class QueryError < GdprApiError; end
     end
   end
 end

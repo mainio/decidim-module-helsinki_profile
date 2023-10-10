@@ -6,6 +6,9 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
   subject { described_class.new(organization, oauth_hash) }
 
   let(:organization) { create(:organization) }
+  let(:auth_server) { Decidim::HelsinkiProfile::Test::OidcServer.get(:auth) }
+  let(:gdpr_api) { Decidim::HelsinkiProfile::Test::GdprGraphql::Server.instance }
+  let(:profile) { create(:helsinki_profile_person) }
   let(:oauth_hash) do
     {
       provider: oauth_provider,
@@ -13,11 +16,19 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
       info: oauth_info,
       extra: {
         raw_info: oauth_raw_info
-      }
+      },
+      credentials: { token: token.to_s }
     }
   end
+  let(:token) do
+    auth_server.token(
+      sub: oauth_uid,
+      amr: amr,
+      scope: Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_uri]
+    )
+  end
   let(:oauth_provider) { "provider" }
-  let(:oauth_uid) { "uid" }
+  let(:oauth_uid) { profile[:id] }
   let(:oauth_name) { "Marja Mainio" }
   let(:oauth_image) { nil }
   let(:oauth_info) do
@@ -32,11 +43,14 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
       name: "Marja Mirja Mainio",
       given_name: "Marja",
       family_name: "Mainio",
-      national_id_num: "150785-994A",
-      amr: amr
+      national_id_num: "150785-994A"
     }
   end
   let(:amr) { %w(suomi_fi) }
+
+  before do
+    gdpr_api.register_profile(profile)
+  end
 
   describe "#verified_email" do
     context "when email is available in the OIDC attributes and is reported as verified" do
@@ -221,9 +235,9 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
       expect(auth.user.id).to eq(user.id)
       expect(auth.unique_id).to eq(signature)
       expect(auth.metadata).to include(
-        "name" => "Marja Mirja Mainio",
-        "given_name" => "Marja",
-        "family_name" => "Mainio"
+        "name" => "#{profile[:first_name]} #{profile[:last_name]}",
+        "given_name" => profile[:first_name],
+        "last_name" => profile[:last_name]
       )
     end
 
@@ -241,9 +255,9 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
 
         expect(auth.id).to eq(authorization.id)
         expect(auth.metadata).to include(
-          "name" => "Marja Mirja Mainio",
-          "given_name" => "Marja",
-          "family_name" => "Mainio"
+          "name" => "#{profile[:first_name]} #{profile[:last_name]}",
+          "given_name" => profile[:first_name],
+          "last_name" => profile[:last_name]
         )
       end
     end

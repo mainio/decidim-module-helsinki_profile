@@ -12,11 +12,13 @@ module Decidim
 
           Decidim::HelsinkiProfile::Test::OidcServer.register(
             :auth,
-            "https://oicd.example.org/auth/realms/helsinki-tunnistus"
+            "https://oicd.example.org/auth/realms/helsinki-tunnistus",
+            "auth-client"
           )
           Decidim::HelsinkiProfile::Test::OidcServer.register(
             :gdpr,
-            "https://gdpr.example.org/auth/decidim"
+            "https://gdpr.example.org/auth/decidim",
+            "profile-api-dev"
           )
 
           auth_server = Decidim::HelsinkiProfile::Test::OidcServer.get(:auth)

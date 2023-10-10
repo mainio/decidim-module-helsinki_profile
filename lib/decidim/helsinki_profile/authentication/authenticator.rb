@@ -46,6 +46,7 @@ module Decidim
         end
 
         def validate!
+          raise ValidationError, "Missing user identifier" if user_identifier.blank?
           raise ValidationError, "Invalid person dentifier" if person_identifier_digest.blank?
 
           true
@@ -139,7 +140,7 @@ module Decidim
         end
 
         def authentication_service
-          @authentication_service ||= Array(oauth_raw_info[:amr]).compact
+          @authentication_service ||= Array(token_info[:amr]).compact
         end
 
         # Create a unique signature for the user that will be used for the
@@ -173,8 +174,26 @@ module Decidim
 
         def metadata_collector
           @metadata_collector ||= Decidim::HelsinkiProfile::Verification::Manager.metadata_collector_for(
-            oauth_raw_info
+            full_metadata
           )
+        end
+
+        def full_metadata
+          @full_metadata ||=
+            if perform_gdpr_request?
+              gdpr_client = GdprApi::Client.new(raw_token)
+              {
+                oauth: oauth_raw_info,
+                token: token_info,
+                gdpr: gdpr_client.fetch
+              }
+            else
+              { oauth: oauth_raw_info, token: token_info }
+            end
+        end
+
+        def perform_gdpr_request?
+          Decidim::HelsinkiProfile.gdpr_authorization
         end
 
         # Data that is stored against the authorization "permanently" (i.e. as
@@ -190,6 +209,14 @@ module Decidim
 
         def national_id_digest
           metadata_collector.national_id_digest
+        end
+
+        def token_info
+          @token_info ||= JSON::JWT.decode(raw_token, :skip_verification)
+        end
+
+        def raw_token
+          oauth_hash[:credentials][:token]
         end
 
         def oauth_raw_info

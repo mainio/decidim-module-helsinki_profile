@@ -11,16 +11,17 @@ module Decidim
             @servers[key]
           end
 
-          def register(key, uri)
+          def register(key, uri, audience)
             @servers ||= {}
-            @servers[key] ||= new(uri)
+            @servers[key] ||= new(uri, audience)
           end
         end
 
-        attr_reader :uri
+        attr_reader :uri, :audience
 
-        def initialize(uri)
+        def initialize(uri, audience)
           @uri = uri
+          @audience = audience
         end
 
         def discovery
@@ -96,12 +97,12 @@ module Decidim
             {
               exp: expires_at.to_i,
               iat: issued_at.to_i,
-              jti: "96da3807-8ab9-4709-8c8f-e93f60dc7a96",
+              jti: Faker::Internet.uuid,
               iss: uri,
-              aud: "profile-api-dev",
-              sub: "60f03ffc-d02a-47b1-8315-395a37a9b4a0",
+              aud: audience,
+              sub: Faker::Internet.uuid,
               azp: "exampleapp-ui-dev",
-              session_state: "8a2cea63-4400-414d-8308-dcbe24d1482d",
+              session_state: Faker::Internet.uuid,
               authorization: {
                 permissions: [
                   {
@@ -110,7 +111,7 @@ module Decidim
                 ]
               },
               scope: scope,
-              sid: "8a2cea63-4400-414d-8308-dcbe24d1482d",
+              sid: Faker::Internet.uuid,
               amr: ["suomi_fi"],
               loa: "substantial"
             }.merge(payload)
@@ -131,17 +132,64 @@ module Decidim
           )
         end
 
-        def userinfo(data = nil)
-          user_data = data || {
-            name: "Fake Account",
-            email: "fake@example.com",
-            address: "Shibuya, Tokyo, Japan",
-            profile: "http://example.org/fake",
-            locale: "fi_FI",
-            phone_number: "+358501234567",
-            verified: false
-          }
+        def userinfo(authorization)
+          return if authorization.blank?
+
+          oidc = Decidim::HelsinkiProfile::Oidc::Connector.new(:auth)
+          token = oidc.authorize_header!(authorization)
+
+          profile = Decidim::HelsinkiProfile::Test::GdprGraphql::Server.instance.profile(token.sub)
+
+          user_data =
+            if profile
+              {
+                sub: profile[:id],
+                name: "#{profile[:first_name]} #{profile[:last_name]}",
+                email: profile.dig(:primary_email, :email),
+                address: profile.dig(:primary_address, :address),
+                profile: ::Faker::Internet.url,
+                locale: "fi_FI",
+                phone_number: ::Faker::PhoneNumber.cell_phone_in_e164,
+                email_verified: profile.dig(:primary_email, :verified) || false
+              }
+            else
+              ::Faker::Base.with_locale("fi") do
+                {
+                  sub: token.sub,
+                  name: "#{::Faker::Name.first_name} #{::Faker::Name.last_name}",
+                  email: ::Faker::Internet.email,
+                  address: ::Faker::Address.street_address,
+                  profile: ::Faker::Internet.url,
+                  locale: "fi_FI",
+                  phone_number: ::Faker::PhoneNumber.cell_phone_in_e164,
+                  email_verified: false
+                }
+              end
+            end
+
           OpenIDConnect::ResponseObject::UserInfo.new(user_data)
+        end
+
+        # Implements the `/api-tokens/` endpoint for the authentication server
+        # that is used to issue a token that can be used to call the GDPR API.
+        #
+        # In the future (after moving to Keycloak), this will be the configured
+        # auth URI with its full path followed by
+        # `/protocol/openid-connect/token`.
+        def api_tokens(authorization)
+          return if authorization.blank?
+
+          # The authorization header is validated against the auth server to
+          # issue a token that is valid for the GDPR API.
+          oidc = Decidim::HelsinkiProfile::Oidc::Connector.new(:auth)
+          token = oidc.authorize_header!(authorization)
+          oidc.validate_scope!(Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_uri])
+
+          server = Decidim::HelsinkiProfile::Test::OidcServer.get(:gdpr)
+          server.token(
+            scope: Decidim::HelsinkiProfile.gdpr_scopes[:query],
+            sub: token.sub
+          )
         end
       end
     end

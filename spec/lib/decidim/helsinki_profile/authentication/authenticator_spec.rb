@@ -197,6 +197,28 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
       end
     end
 
+    # This can happen when the authentication server is changed from the legacy
+    # server to the new Keycloak authentication server. An old identity will
+    # exist for the legacy server and the user's `uid` will change when the
+    # authentication server is swapped.
+    context "when an identity already exists with another uid and matching provider" do
+      let(:old_oauth_uid) { Faker::Internet.uuid }
+      let!(:identity) do
+        user.identities.create!(
+          organization: organization,
+          provider: oauth_provider,
+          uid: old_oauth_uid
+        )
+      end
+
+      it "returns a new identity and allows identification" do
+        expect(subject.identify_user!(user).id).not_to eq(identity.id)
+        expect(
+          Decidim::Identity.where(organization: organization, provider: oauth_provider, user: user).count
+        ).to eq(2)
+      end
+    end
+
     context "when a matching identity already exists for another user" do
       let(:another_user) { create(:user, :confirmed, organization: organization) }
 

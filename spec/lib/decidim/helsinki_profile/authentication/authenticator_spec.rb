@@ -27,7 +27,7 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
       scope: Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_uri]
     )
   end
-  let(:oauth_provider) { "provider" }
+  let(:oauth_provider) { Decidim::HelsinkiProfile.auth_service_name }
   let(:oauth_uid) { profile[:id] }
   let(:oauth_name) { "Marja Mainio" }
   let(:oauth_image) { nil }

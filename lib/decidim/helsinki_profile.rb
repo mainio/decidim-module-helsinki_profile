@@ -77,11 +77,15 @@ module Decidim
       Decidim::HelsinkiProfile::Verification::MetadataCollector
     end
 
-    # Even if some authentication services (amr) would report emails as
-    # verified, we cannot possibly trust them. For instance, Suomi.fi does not
-    # verify the emails entered by the users.
+    # The user's email is confirmed at Helsinki profile's side, so we can trust
+    # that the email always belongs to the user. Therefore, Helsinki profile
+    # should not forward any email addresses that are "untrusted", i.e.
+    # unverified.
+    #
+    # This feature may become useful in the future in case there will be
+    # alternative authentication flows through the Helsinki profile.
     config_accessor :untrusted_email_providers do
-      %w(suomi_fi heltunnistus_suomi_fi)
+      []
     end
 
     def self.configured?

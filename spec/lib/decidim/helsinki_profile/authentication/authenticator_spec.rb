@@ -59,8 +59,8 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
       let(:oauth_raw_info) { base_oauth_raw_info.merge(email_verified: email_verified) }
 
       context "with suomi_fi" do
-        it "returns the generated email" do
-          expect(subject.verified_email).to match(/helsinki-[a-z0-9]{32}@[0-9]+.lvh.me/)
+        it "returns the email from OIDC attributes" do
+          expect(subject.verified_email).to match("user@example.org")
         end
       end
 

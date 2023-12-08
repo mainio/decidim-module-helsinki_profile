@@ -72,7 +72,12 @@ module Decidim
         # about the subject:
         #   "Locally unique and never reassigned identifier within the Issuer
         #   for the End-User, which is intended to be consumed by the Client."
+        #
+        # This should be always set but just in case check that it exists, e.g.
+        # for the specs.
         def person_identifier_digest
+          return if raw_info[:sub].blank?
+
           @person_identifier_digest ||= Digest::MD5.hexdigest(
             "#{raw_info[:sub]}:#{Rails.application.secrets.secret_key_base}"
           )

@@ -46,8 +46,8 @@ module Decidim
         end
 
         def validate!
-          raise ValidationError, "Missing user identifier" if user_identifier.blank?
-          raise ValidationError, "Invalid person dentifier" if person_identifier_digest.blank?
+          raise ValidationError.new("Missing user identifier", :missing_identifier) if user_identifier.blank?
+          raise ValidationError.new("Invalid person identifier", :missing_person_identifier) if person_identifier_digest.blank?
 
           true
         end
@@ -182,11 +182,26 @@ module Decidim
           @full_metadata ||=
             if perform_gdpr_request?
               gdpr_client = GdprApi::Client.new(raw_token)
-              {
-                oauth: oauth_raw_info,
-                token: token_info,
-                gdpr: gdpr_client.fetch
-              }
+              begin
+                {
+                  oauth: oauth_raw_info,
+                  token: token_info,
+                  gdpr: gdpr_client.fetch
+                }
+              rescue Decidim::HelsinkiProfile::GdprApi::QueryError
+                # Most likely cases when this can happen:
+                # 1) The client fails to fetch a token for the profile API which
+                #    is likely because incorrect "audience" provided for the
+                #    token request.
+                # 2) The client fails to fetch the details from the profile API
+                #    because the user has not given permissions for this service
+                #    to fetch the verified personal information which is
+                #    required for a successful authorization.
+                # 3) The user does not have any verified personal information
+                #    currently stored at the profile API, i.e. they are not
+                #    identified using a strong identification method.
+                { oauth: oauth_raw_info, token: token_info }
+              end
             else
               { oauth: oauth_raw_info, token: token_info }
             end

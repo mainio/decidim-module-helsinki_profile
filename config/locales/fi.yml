@@ -19,6 +19,9 @@ fi:
           already_authorized: Toinen käyttäjä on jo tunnistautunut samalla henkilöllisyydellä.
           conditions: Tunnistautumispyyntöä ei käsitelty sallitun aikarajan sisällä. Yritä uudestaan.
           identity_bound_to_other_user: Toinen käyttäjä on jo tunnistautunut tällä henkilöllisyydellä. Kirjaudu ulos ja kirjaudu uudestaan sisään käyttäen suoraan Helsinki profiilia.
+          invalid_data: Tunnistautumistietosi ovat puutteelliset. Tarkasta, että olet luvittanut tämän palvelun tarkastelemaan tietojasi Helsinki-profiilissa.
+          missing_identifier: Tunnistautumispalvelu ei välittänyt profiilillesi uniikkia tunnistetta. Ota yhteyttä järjestelmänvalvojaan.
+          missing_person_identifier: Tunnistautumispalvelu ei välittänyt yksilötunnistettasi (sub). Ota yhteyttä järjestelmänvalvojaan.
           session_expiration: Tunnistustautumisistunto vanhentui. Yritä uudestaan.
           success_status: Tunnistautuminen epäonnistui tai peruutettiin. Yritä uudestaan.
       verification:

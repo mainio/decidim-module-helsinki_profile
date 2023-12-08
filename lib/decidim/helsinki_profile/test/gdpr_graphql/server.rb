@@ -14,7 +14,12 @@ module Decidim
           def request(req)
             authorization = req.headers["Authorization"]
             current_profile = authenticate(authorization)
-            result = execute(req.body, current_profile: current_profile)
+            raise "Invalid request Content-Type, expected: application/json" if req.headers["Content-Type"] != "application/json"
+
+            body = JSON.parse(req.body)
+            raise "Request body does not contain a query" if body["query"].blank?
+
+            result = execute(body["query"], current_profile: current_profile)
 
             {
               status: 200,

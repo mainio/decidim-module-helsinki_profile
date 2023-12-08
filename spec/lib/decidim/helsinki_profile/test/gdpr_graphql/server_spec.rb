@@ -13,8 +13,9 @@ describe Decidim::HelsinkiProfile::Test::GdprGraphql::Server do
   let(:response) do
     Net::HTTP.post(
       URI.parse(described_class.instance.uri),
-      "{ #{query} }",
-      "Authorization" => "Bearer #{auth_token}"
+      { query: "{ #{query} }" }.to_json,
+      "Authorization" => "Bearer #{auth_token}",
+      "Content-Type": "application/json"
     )
   end
   let(:response_json) { JSON.parse(response.body) }

@@ -71,8 +71,9 @@ module Decidim
 
           response = Net::HTTP.post(
             gdpr_api_uri,
-            "{ #{query} }",
-            "Authorization" => "Bearer #{auth_tokens[token_audience]}"
+            { query: "{ #{query} }" }.to_json,
+            "Authorization" => "Bearer #{auth_tokens[token_audience]}",
+            "Content-Type" => "application/json"
           )
           raise QueryError, "Invalid response code from GDPR API: #{response.code}" if response.code != "200"
 

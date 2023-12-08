@@ -3,13 +3,13 @@
 module Decidim
   module HelsinkiProfile
     module Test
-      module GdprGraphql
-        class AddressType < GraphQL::Schema::Enum
-          graphql_name "AddressType"
+      module ProfileGraphql
+        class EmailType < GraphQL::Schema::Enum
+          graphql_name "EmailType"
 
           value "NONE"
           value "WORK"
-          value "HOME"
+          value "PERSONAL"
           value "OTHER"
         end
       end

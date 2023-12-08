@@ -3,8 +3,8 @@
 module Decidim
   module HelsinkiProfile
     module Test
-      module GdprGraphql
-        # This type represents the root mutation type of the GDPR API
+      module ProfileGraphql
+        # This type represents the root mutation type of the profile API
         class MutationType < Decidim::Api::Types::BaseObject
           description "The root mutation of this schema"
         end

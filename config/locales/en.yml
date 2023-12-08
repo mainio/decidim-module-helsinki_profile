@@ -11,8 +11,9 @@ en:
             auth_uri: Authentication server address, URI
             auth_client_id: Authentication client ID
             auth_client_secret: Authentication client secret
-            gdpr_api_uri: GDPR API server address, URI
             gdpr_client_id: GDPR authentication client ID
+            profile_api_uri: Profile GraphQL API server address, URI
+            profile_api_client_id: Profile GraphQL API client ID
     helsinki_profile:
       omniauth_callbacks:
         failure:

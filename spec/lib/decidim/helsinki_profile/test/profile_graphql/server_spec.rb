@@ -2,12 +2,12 @@
 
 require "spec_helper"
 
-# Tests for the dummy GDPR API that it is responding with the expected messages.
-# In case this is broken, it may affect other code which is why this has basic
-# tests to ensure it is functioning correctly.
+# Tests for the dummy profile API that it is responding with the expected
+# messages. In case this is broken, it may affect other code which is why this
+# has basic tests to ensure it is functioning correctly.
 #
-# For actual use, the GDPR API is served by the Helsinki servers.
-describe Decidim::HelsinkiProfile::Test::GdprGraphql::Server do
+# For actual use, the profile API is served by the Helsinki servers.
+describe Decidim::HelsinkiProfile::Test::ProfileGraphql::Server do
   let(:auth_server) { Decidim::HelsinkiProfile::Test::OidcServer.get(:auth) }
   let(:auth_token) { auth_server.token(sub: profile[:id]) }
   let(:response) do
@@ -23,12 +23,12 @@ describe Decidim::HelsinkiProfile::Test::GdprGraphql::Server do
   let(:response_errors) { response_json["errors"] }
 
   let(:profile) { create(:helsinki_profile_person) }
-  let(:gdpr_api) { Decidim::HelsinkiProfile::Test::GdprGraphql::Server.instance }
+  let(:profile_api) { Decidim::HelsinkiProfile::Test::ProfileGraphql::Server.instance }
 
   let(:query) { "myProfile { id firstName }" }
 
   before do
-    gdpr_api.register_profile(profile)
+    profile_api.register_profile(profile)
   end
 
   it "runs the GraphQL query" do
@@ -52,7 +52,7 @@ describe Decidim::HelsinkiProfile::Test::GdprGraphql::Server do
 
     context "when access is not permitted" do
       before do
-        gdpr_api.set_permission(:verified_information, false)
+        profile_api.set_permission(:verified_information, false)
       end
 
       it "returns an error" do

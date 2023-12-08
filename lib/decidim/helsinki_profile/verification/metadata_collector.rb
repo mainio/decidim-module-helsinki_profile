@@ -7,16 +7,16 @@ module Decidim
         def initialize(raw_info)
           @raw_info = raw_info[:oauth]
           @token_info = raw_info[:token]
-          @gdpr_info = raw_info[:gdpr] || {}
+          @profile_info = raw_info[:profile] || {}
         end
 
         def metadata
           {
             service: authentication_method,
             name: full_name,
-            first_name: verified_personal_info[:first_name] || gdpr_info[:first_name] || raw_info[:first_name] || raw_info[:given_name],
+            first_name: verified_personal_info[:first_name] || profile_info[:first_name] || raw_info[:first_name] || raw_info[:given_name],
             given_name: verified_personal_info[:given_name] || raw_info[:given_name],
-            last_name: verified_personal_info[:last_name] || gdpr_info[:last_name] || raw_info[:family_name] || raw_info[:last_name],
+            last_name: verified_personal_info[:last_name] || profile_info[:last_name] || raw_info[:family_name] || raw_info[:last_name],
             ad_groups: raw_info[:ad_groups]
           }.merge(identity_metadata)
         end
@@ -102,7 +102,7 @@ module Decidim
 
         protected
 
-        attr_reader :raw_info, :token_info, :gdpr_info
+        attr_reader :raw_info, :token_info, :profile_info
 
         # One of following:
         # - suomi_fi
@@ -126,7 +126,7 @@ module Decidim
         end
 
         def verified_personal_info
-          gdpr_info[:verified_personal_information] || {}
+          profile_info[:verified_personal_information] || {}
         end
 
         def postal_code

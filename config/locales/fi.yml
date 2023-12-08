@@ -11,8 +11,9 @@ fi:
             auth_uri: Tunnistautumispalvelun osoite, URI
             auth_client_id: Tunnistautumispalvelun asiakkaan tunniste (Client ID)
             auth_client_secret: Tunnistautumispalvelun asiakkaan salausavain (Client secret)
-            gdpr_api_uri: GDPR-rajapinnan osoite, URI
             gdpr_client_id: GDPR-tunnistautumisen asiakkaan tunniste (Client ID)
+            profile_api_uri: Profiilin GraphQL-rajapinnan osoite, URI
+            profile_api_client_id: Profiilin GraphQL-rajapinnan asiakkaan tunniste (Client ID)
     helsinki_profile:
       omniauth_callbacks:
         failure:

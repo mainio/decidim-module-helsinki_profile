@@ -11,6 +11,7 @@ require_relative "helsinki_profile/verification"
 require_relative "helsinki_profile/mail_interceptors"
 require_relative "helsinki_profile/oidc"
 require_relative "helsinki_profile/gdpr_api"
+require_relative "helsinki_profile/profile_api"
 
 module Decidim
   module HelsinkiProfile
@@ -42,7 +43,7 @@ module Decidim
     # Set this to `false` in case the Helsinki profile handover has not been
     # completed. Otherwise the authentication requests may fail against the
     # legacy authentication server due to invalid scopes.
-    config_accessor :gdpr_authorization do
+    config_accessor :profile_authorization do
       true
     end
 

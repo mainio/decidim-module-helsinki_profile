@@ -3,7 +3,7 @@
 module Decidim
   module HelsinkiProfile
     module Test
-      module GdprGraphql
+      module ProfileGraphql
         # Note that this is only a subset of the profile that is needed for the
         # integration to work correctly.
         class ProfileNode < Decidim::Api::Types::BaseObject

@@ -138,7 +138,7 @@ module Decidim
           oidc = Decidim::HelsinkiProfile::Oidc::Connector.new(:auth)
           token = oidc.authorize_header!(authorization)
 
-          profile = Decidim::HelsinkiProfile::Test::GdprGraphql::Server.instance.profile(token.sub)
+          profile = Decidim::HelsinkiProfile::Test::ProfileGraphql::Server.instance.profile(token.sub)
 
           user_data =
             if profile
@@ -172,12 +172,12 @@ module Decidim
 
         # Implements the `/protocol/openid-connect/token` endpoint for the
         # authentication server that is used to issue a token that can be used
-        # to call the GDPR API.
+        # to call the profile API.
         def api_tokens(authorization)
           return if authorization.blank?
 
           # The authorization header is validated against the auth server to
-          # issue a token that is valid for the GDPR API.
+          # issue a token that is valid for the profile API.
           oidc = Decidim::HelsinkiProfile::Oidc::Connector.new(:auth)
           token = oidc.authorize_header!(authorization)
           oidc.validate_scope!("profile")

@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-describe Decidim::HelsinkiProfile::GdprApi::Client do
+describe Decidim::HelsinkiProfile::ProfileApi::Client do
   let(:client) { described_class.new(access_token) }
   let(:auth_server) { Decidim::HelsinkiProfile::Test::OidcServer.get(:auth) }
   let(:access_token) do
@@ -13,10 +13,10 @@ describe Decidim::HelsinkiProfile::GdprApi::Client do
   end
 
   let(:profile) { create(:helsinki_profile_person) }
-  let(:gdpr_api) { Decidim::HelsinkiProfile::Test::GdprGraphql::Server.instance }
+  let(:profile_api) { Decidim::HelsinkiProfile::Test::ProfileGraphql::Server.instance }
 
   before do
-    gdpr_api.register_profile(profile)
+    profile_api.register_profile(profile)
   end
 
   describe "#fetch" do
@@ -24,7 +24,8 @@ describe Decidim::HelsinkiProfile::GdprApi::Client do
 
     it "returns the authenticated user data for the token" do
       # The returned data is a subset of the whole profile which is why this
-      # compares the exact data we are expecting to get from the GDPR client.
+      # compares the exact data we are expecting to get from the profile API
+      # client.
       expect(subject).to eq(
         first_name: profile[:first_name],
         last_name: profile[:last_name],

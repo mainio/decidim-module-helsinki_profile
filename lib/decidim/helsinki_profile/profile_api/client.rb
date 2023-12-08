@@ -2,14 +2,17 @@
 
 module Decidim
   module HelsinkiProfile
-    module GdprApi
-      # Allows fetching data from the GDPR API towards Decidim. This is needed
-      # because the OIDC response does not necessarily contain all the data that
-      # is needed for the user authorizations which are needed for voting.
+    module ProfileApi
+      # Allows fetching data from the profile API towards Decidim. This is
+      # needed because the OIDC response does not necessarily contain all the
+      # data that is needed for the user authorizations which are needed for
+      # voting.
       class Client
-        # The access token is the token provided by the authorization server.
-        # This token is used against the GDPR API authentication server to fetch
-        # an API token to make the further requests to the GDPR API.
+        # The access token is the token provided by the authorization server
+        # (Keycloak). This token is used to fetch a "backend" token for the
+        # backend app to manage the user's data through the profile API. Once
+        # the token is issued, it can be used to fetch further user details
+        # through the profile API using this client.
         def initialize(access_token)
           @access_token = access_token
         end
@@ -70,22 +73,22 @@ module Decidim
           )
 
           response = Net::HTTP.post(
-            gdpr_api_uri,
+            profile_api_uri,
             { query: "{ #{query} }" }.to_json,
             "Authorization" => "Bearer #{auth_tokens[token_audience]}",
             "Content-Type" => "application/json"
           )
-          raise QueryError, "Invalid response code from GDPR API: #{response.code}" if response.code != "200"
+          raise QueryError, "Invalid response code from profile API: #{response.code}" if response.code != "200"
 
           json = JSON.parse(response.body)
           check_errors!(json)
 
           profile = json["data"]["myProfile"]
-          raise QueryError, "Empty profile information from GDPR API." if profile.blank?
+          raise QueryError, "Empty profile information from profile API." if profile.blank?
 
           profile.deep_transform_keys { |key| key.underscore.to_sym }
         rescue JSON::ParserError
-          raise QueryError, "Invalid response body from GDPR API."
+          raise QueryError, "Invalid response body from profile API."
         end
 
         private
@@ -99,7 +102,7 @@ module Decidim
         end
 
         def token_audience
-          Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_client_id]
+          Decidim::HelsinkiProfile.omniauth_secrets[:profile_api_client_id]
         end
 
         def token_grant_type
@@ -110,8 +113,8 @@ module Decidim
           "#access"
         end
 
-        def gdpr_api_uri
-          @gdpr_api_uri ||= URI.parse(Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_api_uri])
+        def profile_api_uri
+          @profile_api_uri ||= URI.parse(Decidim::HelsinkiProfile.omniauth_secrets[:profile_api_uri])
         end
 
         def auth_token_uri

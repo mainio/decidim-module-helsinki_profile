@@ -14,7 +14,7 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
   let(:amr) { ["suomi_fi"] }
 
   let(:auth_server) { Decidim::HelsinkiProfile::Test::OidcServer.get(:auth) }
-  let(:gdpr_api) { Decidim::HelsinkiProfile::Test::GdprGraphql::Server.instance }
+  let(:profile_api) { Decidim::HelsinkiProfile::Test::ProfileGraphql::Server.instance }
   let(:profile) { create(:helsinki_profile_person) }
   let(:token_sub) { profile[:id] }
 
@@ -60,7 +60,7 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
   let(:code) { SecureRandom.hex(16) }
 
   before do
-    gdpr_api.register_profile(profile)
+    profile_api.register_profile(profile)
 
     # Set the correct host
     host! organization.host
@@ -69,7 +69,7 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
     # the session variables to validate the callback request properly. This
     # tests the authentication flow sort of "end-to-end" (served by the local
     # dummy "servers") in order to generate the tokens properly through the
-    # Omniauth strategy and initiate the GDPR API requests correctly.
+    # Omniauth strategy and initiate the profile API requests correctly.
     post("/users/auth/helsinki")
   end
 

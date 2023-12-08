@@ -5,7 +5,7 @@ A [Decidim](https://github.com/decidim/decidim) module to add
 authentication to Decidim as a way to authenticate and authorize the users.
 
 The Helsinki profile is the City of Helsinki's way to manage user data in a
-centralzied way across all the digital city services. It allows the Helsinki
+centralized way across all the digital city services. It allows the Helsinki
 residents to login to different city services with a single profile and manage
 their data in one place. It works through OpenID connect that handles the user
 authentication flows.
@@ -42,8 +42,9 @@ default: &default
       auth_uri: <%= ENV["HELSINKIPROFILE_AUTH_URI"] %>
       auth_client_id: <%= ENV["HELSINKIPROFILE_AUTH_CLIENT_ID"] %>
       auth_client_secret: <%= ENV["HELSINKIPROFILE_AUTH_CLIENT_SECRET"] %>
-      gdpr_api_uri: <%= ENV["HELSINKIPROFILE_GDPR_API_URI"] %>
       gdpr_client_id: <%= ENV["HELSINKIPROFILE_GDPR_CLIENT_ID"] %>
+      profile_api_uri: <%= ENV["HELSINKIPROFILE_PROFILE_API_URI"] %>
+      profile_api_client_id: <%= ENV["HELSINKIPROFILE_PROFILE_API_CLIENT_ID"] %>
       icon: account-login
 ```
 

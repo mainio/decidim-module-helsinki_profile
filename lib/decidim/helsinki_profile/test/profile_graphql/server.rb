@@ -3,12 +3,12 @@
 module Decidim
   module HelsinkiProfile
     module Test
-      module GdprGraphql
+      module ProfileGraphql
         class Server
           include Singleton
 
           def uri
-            @uri ||= "https://gdpr-api.example.org/graphql/"
+            @uri ||= "https://profile-api.example.org/graphql/"
           end
 
           def request(req)

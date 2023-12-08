@@ -180,15 +180,15 @@ module Decidim
 
         def full_metadata
           @full_metadata ||=
-            if perform_gdpr_request?
-              gdpr_client = GdprApi::Client.new(raw_token)
+            if perform_api_request?
+              api_client = ProfileApi::Client.new(raw_token)
               begin
                 {
                   oauth: oauth_raw_info,
                   token: token_info,
-                  gdpr: gdpr_client.fetch
+                  profile: api_client.fetch
                 }
-              rescue Decidim::HelsinkiProfile::GdprApi::QueryError
+              rescue Decidim::HelsinkiProfile::ProfileApi::QueryError
                 # Most likely cases when this can happen:
                 # 1) The client fails to fetch a token for the profile API which
                 #    is likely because incorrect "audience" provided for the
@@ -207,8 +207,8 @@ module Decidim
             end
         end
 
-        def perform_gdpr_request?
-          Decidim::HelsinkiProfile.gdpr_authorization
+        def perform_api_request?
+          Decidim::HelsinkiProfile.profile_authorization
         end
 
         # Data that is stored against the authorization "permanently" (i.e. as

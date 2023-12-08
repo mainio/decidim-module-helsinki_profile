@@ -3,7 +3,7 @@
 module Decidim
   module HelsinkiProfile
     module Test
-      module GdprGraphql
+      module ProfileGraphql
         # Main GraphQL schema for decidim's API.
         class Schema < GraphQL::Schema
           mutation(MutationType)

@@ -12,7 +12,7 @@ ENV["NODE_ENV"] ||= "test"
 Decidim::Dev.dummy_app_path = File.expand_path(File.join(__dir__, "decidim_dummy_app"))
 
 require "decidim/helsinki_profile/test/oidc_server"
-require "decidim/helsinki_profile/test/gdpr_graphql"
+require "decidim/helsinki_profile/test/profile_graphql"
 require "decidim/dev/test/base_spec_helper"
 
 RSpec.configure do |config|
@@ -53,10 +53,10 @@ RSpec.configure do |config|
 
   config.before do
     auth_server = Decidim::HelsinkiProfile::Test::OidcServer.get(:auth)
-    gdpr_api = Decidim::HelsinkiProfile::Test::GdprGraphql::Server.instance
+    profile_api = Decidim::HelsinkiProfile::Test::ProfileGraphql::Server.instance
 
-    gdpr_api.reset_permissions
-    gdpr_api.reset_profiles
+    profile_api.reset_permissions
+    profile_api.reset_profiles
 
     # Endpoints that are common for OICD servers
     discovery = auth_server.discovery
@@ -83,10 +83,10 @@ RSpec.configure do |config|
           body: "Invalid request"
         }
       elsif (auth = request.headers["Authorization"]).present?
-        # GDPR authentication request (i.e. already authenticated)
+        # Profile API authentication request (i.e. already authenticated)
         form_data = URI.decode_www_form(request.body).to_h
         expected_data = {
-          "audience" => Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_client_id],
+          "audience" => Decidim::HelsinkiProfile.omniauth_secrets[:profile_api_client_id],
           "grant_type" => "urn:ietf:params:oauth:grant-type:uma-ticket",
           "permission" => "#access"
         }
@@ -147,9 +147,9 @@ RSpec.configure do |config|
       end
     end
 
-    # Endpoints for the GDPR GraphQL API
-    stub_request(:post, gdpr_api.uri).to_return do |request|
-      gdpr_api.request(request)
+    # Endpoints for the profile GraphQL API
+    stub_request(:post, profile_api.uri).to_return do |request|
+      profile_api.request(request)
     end
   end
 end

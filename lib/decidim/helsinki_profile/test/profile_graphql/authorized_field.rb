@@ -3,7 +3,7 @@
 module Decidim
   module HelsinkiProfile
     module Test
-      module GdprGraphql
+      module ProfileGraphql
         class AuthorizedField < GraphQL::Schema::Field
           def initialize(*args, required_permission: nil, **kwargs, &block)
             @required_permission = required_permission

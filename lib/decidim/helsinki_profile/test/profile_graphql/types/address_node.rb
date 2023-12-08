@@ -3,7 +3,7 @@
 module Decidim
   module HelsinkiProfile
     module Test
-      module GdprGraphql
+      module ProfileGraphql
         class AddressNode < Decidim::Api::Types::BaseObject
           graphql_name "AddressNode"
 

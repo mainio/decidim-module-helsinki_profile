@@ -7,7 +7,7 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
 
   let(:organization) { create(:organization) }
   let(:auth_server) { Decidim::HelsinkiProfile::Test::OidcServer.get(:auth) }
-  let(:gdpr_api) { Decidim::HelsinkiProfile::Test::GdprGraphql::Server.instance }
+  let(:profile_api) { Decidim::HelsinkiProfile::Test::ProfileGraphql::Server.instance }
   let(:profile) { create(:helsinki_profile_person) }
   let(:oauth_hash) do
     {
@@ -50,7 +50,7 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
   let(:amr) { %w(suomi_fi) }
 
   before do
-    gdpr_api.register_profile(profile)
+    profile_api.register_profile(profile)
   end
 
   describe "#verified_email" do
@@ -294,7 +294,7 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
       end
 
       before do
-        gdpr_api.set_permission(:verified_information, false)
+        profile_api.set_permission(:verified_information, false)
       end
 
       it "authorizes the user with limited information" do

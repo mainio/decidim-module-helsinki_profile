@@ -170,12 +170,9 @@ module Decidim
           OpenIDConnect::ResponseObject::UserInfo.new(user_data)
         end
 
-        # Implements the `/api-tokens/` endpoint for the authentication server
-        # that is used to issue a token that can be used to call the GDPR API.
-        #
-        # In the future (after moving to Keycloak), this will be the configured
-        # auth URI with its full path followed by
-        # `/protocol/openid-connect/token`.
+        # Implements the `/protocol/openid-connect/token` endpoint for the
+        # authentication server that is used to issue a token that can be used
+        # to call the GDPR API.
         def api_tokens(authorization)
           return if authorization.blank?
 
@@ -183,10 +180,9 @@ module Decidim
           # issue a token that is valid for the GDPR API.
           oidc = Decidim::HelsinkiProfile::Oidc::Connector.new(:auth)
           token = oidc.authorize_header!(authorization)
-          oidc.validate_scope!(Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_uri])
+          oidc.validate_scope!("profile")
 
-          server = Decidim::HelsinkiProfile::Test::OidcServer.get(:gdpr)
-          server.token(
+          token(
             scope: Decidim::HelsinkiProfile.gdpr_scopes[:query],
             sub: token.sub
           )

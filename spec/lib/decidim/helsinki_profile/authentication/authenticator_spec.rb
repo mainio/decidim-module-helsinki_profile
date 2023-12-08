@@ -24,7 +24,7 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
     auth_server.token(
       sub: oauth_uid,
       amr: amr,
-      scope: Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_uri]
+      scope: Decidim::HelsinkiProfile.auth_scopes.map(&:to_s).join(" ")
     )
   end
   let(:oauth_provider) { Decidim::HelsinkiProfile.auth_service_name }

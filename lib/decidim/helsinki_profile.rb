@@ -99,10 +99,14 @@ module Decidim
 
       # See:
       # https://profile-api.dev.hel.ninja/docs/gdpr-api/
-      gdpr_uri = omniauth_secrets[:gdpr_uri]
+      # auth_uri = omniauth_secrets[:auth_uri]
+      # prefix = "#{auth_uri}."
+      # In the integration documentation it seems that the GDPR scopes were
+      # defined without the service authentication URI as a prefix, although the
+      # documentation instructs so.
       {
-        query: "#{gdpr_uri}.gdprquery",
-        delete: "#{gdpr_uri}.gdprdelete"
+        query: "gdprquery",
+        delete: "gdprdelete"
       }
     end
 
@@ -149,19 +153,12 @@ module Decidim
       client_secret = secrets[:auth_client_secret]
       service_name = auth_service_name
 
-      scope =
-        if gdpr_authorization
-          auth_scopes + ["https://api.hel.fi/auth/helsinkiprofile", secrets[:gdpr_uri]]
-        else
-          auth_scopes
-        end
-
       auth_uri = URI.parse(server_uri)
       {
         name: service_name.to_sym,
         strategy_class: OmniAuth::Strategies::Helsinki,
         issuer: server_uri,
-        scope: scope,
+        scope: auth_scopes,
         client_options: {
           port: auth_uri.port,
           scheme: auth_uri.scheme,

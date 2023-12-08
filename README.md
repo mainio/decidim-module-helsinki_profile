@@ -42,9 +42,8 @@ default: &default
       auth_uri: <%= ENV["HELSINKIPROFILE_AUTH_URI"] %>
       auth_client_id: <%= ENV["HELSINKIPROFILE_AUTH_CLIENT_ID"] %>
       auth_client_secret: <%= ENV["HELSINKIPROFILE_AUTH_CLIENT_SECRET"] %>
-      gdpr_uri: <%= ENV["HELSINKIPROFILE_GDPR_URI"] %>
+      gdpr_api_uri: <%= ENV["HELSINKIPROFILE_GDPR_API_URI"] %>
       gdpr_client_id: <%= ENV["HELSINKIPROFILE_GDPR_CLIENT_ID"] %>
-      gdpr_client_secret: <%= ENV["HELSINKIPROFILE_GDPR_CLIENT_SECRET"] %>
       icon: account-login
 ```
 

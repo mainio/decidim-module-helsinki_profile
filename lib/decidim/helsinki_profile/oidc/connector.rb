@@ -8,10 +8,9 @@ module Decidim
         attr_reader :id_token
 
         # Creates an OIDC connector object which can be used to communicate with
-        # the given OIDC server (either :auth or :gdpr).
+        # the given OIDC server.
         #
-        # @param key [String] The key of the connected service, either :auth or
-        #   :gdpr
+        # @param key [String] The key of the connected service
         def initialize(server)
           @server = server
         end
@@ -100,7 +99,7 @@ module Decidim
         end
 
         # Fetches the OIDC configuration from the authentication server for the
-        # given key (either :auth or :gdpr).
+        # given key.
         def discover!
           raise NotConfiguredError unless Decidim::HelsinkiProfile.configured?
 

@@ -7,6 +7,10 @@ module Decidim
         class Server
           include Singleton
 
+          def uri
+            @uri ||= "https://gdpr-api.example.org/graphql/"
+          end
+
           def request(req)
             authorization = req.headers["Authorization"]
             current_profile = authenticate(authorization)
@@ -28,7 +32,7 @@ module Decidim
             return if authorization.blank?
 
             token = oidc.authorize_header!(authorization)
-            oidc.validate_scope!("https://gdpr.example.org/auth/decidim.gdprquery")
+            oidc.validate_scope!("gdprquery")
 
             profile(token.sub)
           rescue Decidim::HelsinkiProfile::Oidc::InvalidTokenError, Decidim::HelsinkiProfile::Oidc::InvalidScopeError
@@ -54,7 +58,7 @@ module Decidim
           private
 
           def oidc
-            @oidc ||= Decidim::HelsinkiProfile::Oidc::Connector.new(:gdpr)
+            @oidc ||= Decidim::HelsinkiProfile::Oidc::Connector.new(:auth)
           end
         end
       end

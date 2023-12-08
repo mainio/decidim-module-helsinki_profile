@@ -53,44 +53,70 @@ RSpec.configure do |config|
 
   config.before do
     auth_server = Decidim::HelsinkiProfile::Test::OidcServer.get(:auth)
-    gdpr_server = Decidim::HelsinkiProfile::Test::OidcServer.get(:gdpr)
     gdpr_api = Decidim::HelsinkiProfile::Test::GdprGraphql::Server.instance
 
     gdpr_api.reset_profiles
 
-    # Endpoints that are common for both OICD servers
-    [auth_server, gdpr_server].each do |server|
-      discovery = server.discovery
+    # Endpoints that are common for OICD servers
+    discovery = auth_server.discovery
 
-      # Respond to the metadata request with a stubbed request to avoid external
-      # HTTP calls.
-      stub_request(:get, "#{server.uri}/.well-known/openid-configuration").to_return(
-        headers: { "Content-Type" => "application/json" },
-        body: discovery.to_json
-      )
+    # Respond to the metadata request with a stubbed request to avoid external
+    # HTTP calls.
+    stub_request(:get, "#{auth_server.uri}/.well-known/openid-configuration").to_return(
+      headers: { "Content-Type" => "application/json" },
+      body: discovery.to_json
+    )
 
-      stub_request(:get, discovery.jwks_uri).to_return(
-        headers: { "Content-Type" => "application/json" },
-        body: server.jwks.export.to_json
-      )
-    end
+    stub_request(:get, discovery.jwks_uri).to_return(
+      headers: { "Content-Type" => "application/json" },
+      body: auth_server.jwks.export.to_json
+    )
 
     # Endpoints needed only for the auth server
     discovery = auth_server.discovery
 
     stub_request(:post, discovery.token_endpoint).to_return do |request|
-      form_data = URI.decode_www_form(request.body).to_h
+      if request.headers["Content-Type"] != "application/x-www-form-urlencoded"
+        {
+          status: 400,
+          body: "Invalid request"
+        }
+      elsif (auth = request.headers["Authorization"]).present?
+        # GDPR authentication request (i.e. already authenticated)
+        form_data = URI.decode_www_form(request.body).to_h
+        expected_data = {
+          "audience" => Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_client_id],
+          "grant_type" => "urn:ietf:params:oauth:grant-type:uma-ticket",
+          "permission" => "#access"
+        }
 
-      token_payload = {
-        aud: Decidim::HelsinkiProfile.omniauth_secrets[:auth_client_id],
-        scope: form_data["scope"]
-      }
-      token_payload[:sub] = token_sub if respond_to?(:token_sub) && token_sub
+        token = auth_server.api_tokens(auth) if expected_data == form_data
+        if token
+          {
+            status: 200,
+            headers: { "Content-Type" => "application/json" },
+            body: token.to_json
+          }
+        else
+          {
+            status: 400,
+            body: "Invalid request"
+          }
+        end
+      else
+        form_data = URI.decode_www_form(request.body).to_h
 
-      {
-        headers: { "Content-Type" => "application/json" },
-        body: auth_server.token(token_payload).to_json
-      }
+        token_payload = {
+          aud: Decidim::HelsinkiProfile.omniauth_secrets[:auth_client_id],
+          scope: form_data["scope"]
+        }
+        token_payload[:sub] = token_sub if respond_to?(:token_sub) && token_sub
+
+        {
+          headers: { "Content-Type" => "application/json" },
+          body: auth_server.token(token_payload).to_json
+        }
+      end
     end
 
     stub_request(:get, discovery.authorization_endpoint).to_return do |request|
@@ -120,32 +146,8 @@ RSpec.configure do |config|
       end
     end
 
-    # GDPR API token endpoint for the auth server
-    auth_uri = URI.parse(auth_server.uri)
-    port = [80, 443].include?(auth_uri.port) ? "" : ":#{auth_uri.port}"
-    auth_server_uri = "#{auth_uri.scheme}://#{auth_uri.host}#{port}"
-    stub_request(:post, "#{auth_server_uri}/api-tokens/").to_return do |request|
-      token = auth_server.api_tokens(request.headers["Authorization"]) if request.headers["Content-Type"] == "application/x-www-form-urlencoded"
-
-      if token
-        {
-          status: 200,
-          headers: { "Content-Type" => "application/json" },
-          body: token.to_json
-        }
-      else
-        {
-          status: 400,
-          body: "Invalid request"
-        }
-      end
-    end
-
     # Endpoints for the GDPR GraphQL API
-    gdpr_uri = URI.parse(gdpr_server.uri)
-    port = [80, 443].include?(gdpr_uri.port) ? "" : ":#{gdpr_uri.port}"
-    gdpr_api_host = "#{gdpr_uri.scheme}://#{gdpr_uri.host}#{port}"
-    stub_request(:post, "#{gdpr_api_host}/graphql").to_return do |request|
+    stub_request(:post, gdpr_api.uri).to_return do |request|
       gdpr_api.request(request)
     end
   end

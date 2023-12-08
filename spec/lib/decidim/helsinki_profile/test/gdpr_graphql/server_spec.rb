@@ -8,11 +8,11 @@ require "spec_helper"
 #
 # For actual use, the GDPR API is served by the Helsinki servers.
 describe Decidim::HelsinkiProfile::Test::GdprGraphql::Server do
-  let(:gdpr_server) { Decidim::HelsinkiProfile::Test::OidcServer.get(:gdpr) }
-  let(:auth_token) { gdpr_server.token(sub: profile[:id]) }
+  let(:auth_server) { Decidim::HelsinkiProfile::Test::OidcServer.get(:auth) }
+  let(:auth_token) { auth_server.token(sub: profile[:id]) }
   let(:response) do
     Net::HTTP.post(
-      URI.parse("https://gdpr.example.org/graphql"),
+      URI.parse(described_class.instance.uri),
       "{ #{query} }",
       "Authorization" => "Bearer #{auth_token}"
     )

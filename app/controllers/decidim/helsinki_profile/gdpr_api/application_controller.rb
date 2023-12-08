@@ -72,7 +72,7 @@ module Decidim
         end
 
         def oidc
-          @oidc ||= Decidim::HelsinkiProfile::Oidc::Connector.new(:gdpr)
+          @oidc ||= Decidim::HelsinkiProfile::Oidc::Connector.new(:auth)
         end
       end
     end

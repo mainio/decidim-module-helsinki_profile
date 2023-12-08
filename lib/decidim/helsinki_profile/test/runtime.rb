@@ -15,14 +15,9 @@ module Decidim
             "https://oicd.example.org/auth/realms/helsinki-tunnistus",
             "auth-client"
           )
-          Decidim::HelsinkiProfile::Test::OidcServer.register(
-            :gdpr,
-            "https://gdpr.example.org/auth/decidim",
-            "profile-api-dev"
-          )
 
           auth_server = Decidim::HelsinkiProfile::Test::OidcServer.get(:auth)
-          gdpr_server = Decidim::HelsinkiProfile::Test::OidcServer.get(:gdpr)
+          gdpr_api = Decidim::HelsinkiProfile::Test::GdprGraphql::Server.instance
 
           Rails.application.secrets.omniauth = {
             helsinki: {
@@ -30,9 +25,8 @@ module Decidim
               auth_uri: auth_server.uri,
               auth_client_id: "auth-client",
               auth_client_secret: "abcdef1234567890",
-              gdpr_uri: gdpr_server.uri,
-              gdpr_client_id: "profile-api-dev",
-              gdpr_client_secret: "1234567890abcdef"
+              gdpr_api_uri: gdpr_api.uri,
+              gdpr_client_id: "profile-api-dev"
             }
           }
 

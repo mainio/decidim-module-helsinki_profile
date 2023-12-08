@@ -46,7 +46,7 @@ describe Decidim::HelsinkiProfile::GdprApi::V1::ProfilesController, type: :contr
     # control better the signing of the keys.
     JSON::JWK.new(oidc_server.jwk_rsa_keys.first, kid: oidc_server.jwks.first.kid)
   end
-  let(:oidc_server) { Decidim::HelsinkiProfile::Test::OidcServer.get(:gdpr) }
+  let(:oidc_server) { Decidim::HelsinkiProfile::Test::OidcServer.get(:auth) }
 
   before do
     request.env["decidim.current_organization"] = organization
@@ -81,7 +81,7 @@ describe Decidim::HelsinkiProfile::GdprApi::V1::ProfilesController, type: :contr
     end
 
     context "when the token is signed with the client secret" do
-      let(:jwt_key) { Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_client_secret] }
+      let(:jwt_key) { Decidim::HelsinkiProfile.omniauth_secrets[:auth_client_secret] }
 
       [:HS256, :HS384, :HS512].each do |alg|
         context "with #{alg}" do

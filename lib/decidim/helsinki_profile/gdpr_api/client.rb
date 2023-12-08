@@ -98,42 +98,24 @@ module Decidim
         end
 
         def token_audience
-          Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_uri]
+          Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_client_id]
         end
 
         def token_grant_type
-          # For Keycloak:
-          # "urn:ietf:params:oauth:grant-type:uma-ticket"
-          nil
+          "urn:ietf:params:oauth:grant-type:uma-ticket"
         end
 
         def token_permission
-          # For Keycloak:
-          # "#access"
-          nil
+          "#access"
         end
 
         def gdpr_api_uri
-          @gdpr_api_uri ||= begin
-            gdpr_host = server_host(Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_uri])
-            URI.parse("#{gdpr_host}/graphql")
-          end
+          @gdpr_api_uri ||= URI.parse(Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_api_uri])
         end
 
         def auth_token_uri
-          @auth_token_uri ||= begin
-            # The temporary token URI using Tunnistamo server. In the future
-            # (after moving to Keycloak), this will be the configured auth URI
-            # with its full path followed by `/protocol/openid-connect/token`.
-            auth_host = server_host(Decidim::HelsinkiProfile.omniauth_secrets[:auth_uri])
-            URI.parse("#{auth_host}/api-tokens/")
-          end
-        end
-
-        def server_host(uri)
-          uri = URI.parse(uri)
-          port = [80, 443].include?(uri.port) ? "" : ":#{uri.port}"
-          "#{uri.scheme}://#{uri.host}#{port}"
+          @auth_token_uri ||=
+            URI.parse("#{Decidim::HelsinkiProfile.omniauth_secrets[:auth_uri]}/protocol/openid-connect/token")
         end
       end
     end

@@ -65,6 +65,7 @@ module OmniAuth
       def other_phase
         return callback_phase if silent_path_pattern.match?(current_path)
 
+        puts "OTHER PHASE"
         super
       end
 

@@ -7,7 +7,7 @@ describe Decidim::HelsinkiProfile::GdprApi::Client do
   let(:auth_server) { Decidim::HelsinkiProfile::Test::OidcServer.get(:auth) }
   let(:access_token) do
     auth_server.token(
-      scope: Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_uri],
+      scope: Decidim::HelsinkiProfile.auth_scopes.map(&:to_s).join(" "),
       sub: profile[:id]
     )
   end

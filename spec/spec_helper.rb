@@ -85,13 +85,8 @@ RSpec.configure do |config|
       elsif (auth = request.headers["Authorization"]).present?
         # Profile API authentication request (i.e. already authenticated)
         form_data = URI.decode_www_form(request.body).to_h
-        expected_data = {
-          "audience" => Decidim::HelsinkiProfile.omniauth_secrets[:profile_api_client_id],
-          "grant_type" => "urn:ietf:params:oauth:grant-type:uma-ticket",
-          "permission" => "#access"
-        }
 
-        token = auth_server.api_tokens(auth) if expected_data == form_data
+        token = auth_server.api_tokens(auth, form_data)
         if token
           {
             status: 200,

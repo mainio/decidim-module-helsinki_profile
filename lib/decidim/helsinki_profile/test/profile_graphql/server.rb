@@ -37,7 +37,7 @@ module Decidim
             return if authorization.blank?
 
             token = oidc.authorize_header!(authorization)
-            oidc.validate_scope!("gdprquery")
+            oidc.validate_scope!("profile")
 
             profile(token.sub)
           rescue Decidim::HelsinkiProfile::Oidc::InvalidTokenError, Decidim::HelsinkiProfile::Oidc::InvalidScopeError

@@ -89,7 +89,7 @@ module Decidim
         def jwt(payload = {})
           issued_at = payload.delete(:iat) || Time.zone.now
           expires_at = payload.delete(:exp) || (issued_at + 30.minutes)
-          scope = payload.delete(:scope) || Decidim::HelsinkiProfile.gdpr_scopes.values.join(" ")
+          scope = payload.delete(:scope) || default_token_scope
 
           # Note that we use `JSON::JWT` instead of `JWT.encode` to better
           # control the signing of tokens.
@@ -173,8 +173,15 @@ module Decidim
         # Implements the `/protocol/openid-connect/token` endpoint for the
         # authentication server that is used to issue a token that can be used
         # to call the profile API.
-        def api_tokens(authorization)
+        def api_tokens(authorization, form_data)
           return if authorization.blank?
+
+          expected_data = {
+            "audience" => Decidim::HelsinkiProfile.omniauth_secrets[:profile_api_client_id],
+            "grant_type" => "urn:ietf:params:oauth:grant-type:uma-ticket",
+            "permission" => "#access"
+          }
+          return unless form_data == expected_data
 
           # The authorization header is validated against the auth server to
           # issue a token that is valid for the profile API.
@@ -183,9 +190,15 @@ module Decidim
           oidc.validate_scope!("profile")
 
           token(
-            scope: Decidim::HelsinkiProfile.gdpr_scopes[:query],
+            scope: default_token_scope,
             sub: token.sub
           )
+        end
+
+        private
+
+        def default_token_scope
+          "add-ad-groups-claim profile"
         end
       end
     end

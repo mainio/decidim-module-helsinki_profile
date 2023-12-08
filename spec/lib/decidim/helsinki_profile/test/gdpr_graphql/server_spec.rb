@@ -31,11 +31,47 @@ describe Decidim::HelsinkiProfile::Test::GdprGraphql::Server do
     gdpr_api.register_profile(profile)
   end
 
-  it "runs the GDPR query" do
+  it "runs the GraphQL query" do
     expect(response.code).to eq("200")
     expect(response_data).to eq(
       "myProfile" => { "id" => profile[:id], "firstName" => profile[:first_name] }
     )
+    expect(response_errors).to be_nil
+  end
+
+  context "with verifiedPersonalInformation" do
+    let(:query) { "myProfile { verifiedPersonalInformation { firstName } }" }
+
+    it "runs the GraphQL query" do
+      expect(response.code).to eq("200")
+      expect(response_data).to eq(
+        "myProfile" => { "verifiedPersonalInformation" => { "firstName" => profile[:first_name] } }
+      )
+      expect(response_errors).to be_nil
+    end
+
+    context "when access is not permitted" do
+      before do
+        gdpr_api.set_permission(:verified_information, false)
+      end
+
+      it "returns an error" do
+        expect(response.code).to eq("200")
+        expect(response_data).to eq(
+          "myProfile" => { "verifiedPersonalInformation" => nil }
+        )
+        expect(response_errors).to eq(
+          [
+            {
+              "message" => "You do not have permission to perform this action.",
+              "locations" => [{ "line" => 1, "column" => 15 }],
+              "path" => %w(myProfile verifiedPersonalInformation),
+              "extensions" => { "code" => "PERMISSION_DENIED_ERROR" }
+            }
+          ]
+        )
+      end
+    end
   end
 
   context "when the auth token is incorrect" do

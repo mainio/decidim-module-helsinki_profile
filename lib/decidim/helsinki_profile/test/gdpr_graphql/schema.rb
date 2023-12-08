@@ -26,7 +26,7 @@ module Decidim
 
           def self.error_to_code(error)
             case error
-            when GraphQL::UnauthorizedFieldError
+            when GraphQL::UnauthorizedFieldError, GraphQL::UnauthorizedError
               "PERMISSION_DENIED_ERROR"
             else
               "GENERAL_ERROR"

@@ -9,6 +9,8 @@ module Decidim
         class ProfileNode < Decidim::Api::Types::BaseObject
           graphql_name "ProfileNode"
 
+          field_class AuthorizedField
+
           field :id, GraphQL::Types::ID, null: false
           field :first_name, GraphQL::Types::String, null: false
           field :last_name, GraphQL::Types::String, null: false
@@ -16,7 +18,7 @@ module Decidim
           field :language, GraphQL::Types::String, null: true
           field :primary_email, EmailNode, null: true
           field :primary_address, AddressNode, null: true
-          field :verified_personal_information, VerifiedPersonalInformationNode, null: true
+          field :verified_personal_information, VerifiedPersonalInformationNode, null: true, required_permission: :verified_information
         end
       end
     end

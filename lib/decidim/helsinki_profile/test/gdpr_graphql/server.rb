@@ -28,7 +28,7 @@ module Decidim
           end
 
           def execute(query, variables: {}, operation_name: nil, current_profile: nil)
-            context = { current_profile: current_profile }
+            context = { current_profile: current_profile, permissions: permissions }
 
             Schema.execute(query, variables: variables, operation_name: operation_name, context: context)
           end
@@ -42,6 +42,14 @@ module Decidim
             profile(token.sub)
           rescue Decidim::HelsinkiProfile::Oidc::InvalidTokenError, Decidim::HelsinkiProfile::Oidc::InvalidScopeError
             nil
+          end
+
+          def reset_permissions
+            @permissions = default_permissions
+          end
+
+          def set_permission(key, value)
+            permissions[key] = value
           end
 
           def reset_profiles
@@ -61,6 +69,16 @@ module Decidim
           end
 
           private
+
+          def permissions
+            @permissions ||= default_permissions
+
+            @permissions
+          end
+
+          def default_permissions
+            { verified_information: true }
+          end
 
           def oidc
             @oidc ||= Decidim::HelsinkiProfile::Oidc::Connector.new(:auth)

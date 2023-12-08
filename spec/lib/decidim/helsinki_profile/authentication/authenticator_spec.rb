@@ -40,6 +40,7 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
   let(:oauth_raw_info) { base_oauth_raw_info }
   let(:base_oauth_raw_info) do
     {
+      sub: oauth_uid,
       name: "Marja Mirja Mainio",
       given_name: "Marja",
       family_name: "Mainio",
@@ -167,6 +168,26 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
     it "returns true for valid authentication data" do
       expect(subject.validate!).to be(true)
     end
+
+    context "when user identifier is blank" do
+      let(:oauth_uid) { nil }
+
+      it "raises a validation error" do
+        expect { subject.validate! }.to raise_error(
+          Decidim::HelsinkiProfile::Authentication::ValidationError
+        )
+      end
+    end
+
+    context "when the sub field is not available at the OAuth raw info" do
+      let(:oauth_raw_info) { base_oauth_raw_info.merge(sub: nil) }
+
+      it "raises a validation error" do
+        expect { subject.validate! }.to raise_error(
+          Decidim::HelsinkiProfile::Authentication::ValidationError
+        )
+      end
+    end
   end
 
   describe "#identify_user!" do
@@ -261,6 +282,37 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
         "given_name" => profile[:first_name],
         "last_name" => profile[:last_name]
       )
+    end
+
+    context "when the profile API does not return verified user information" do
+      let(:oauth_raw_info) do
+        {
+          name: "Marja Mirja Mainio",
+          given_name: "Marja",
+          family_name: "Mainio"
+        }
+      end
+
+      before do
+        gdpr_api.set_permission(:verified_information, false)
+      end
+
+      it "authorizes the user with limited information" do
+        auth = subject.authorize_user!(user)
+
+        expect(Decidim::Authorization.count).to eq(1)
+        expect(Decidim::Authorization.last.id).to eq(auth.id)
+        expect(auth.metadata).to eq(
+          "service" => ["suomi_fi"],
+          "name" => oauth_raw_info[:name],
+          "first_name" => oauth_raw_info[:given_name],
+          "given_name" => oauth_raw_info[:given_name],
+          "last_name" => oauth_raw_info[:family_name],
+          "ad_groups" => nil,
+          "permanent_address" => false
+        )
+        expect(auth.pseudonymized_pin).to be_nil
+      end
     end
 
     context "when an authorization already exists" do

@@ -55,6 +55,7 @@ RSpec.configure do |config|
     auth_server = Decidim::HelsinkiProfile::Test::OidcServer.get(:auth)
     gdpr_api = Decidim::HelsinkiProfile::Test::GdprGraphql::Server.instance
 
+    gdpr_api.reset_permissions
     gdpr_api.reset_profiles
 
     # Endpoints that are common for OICD servers

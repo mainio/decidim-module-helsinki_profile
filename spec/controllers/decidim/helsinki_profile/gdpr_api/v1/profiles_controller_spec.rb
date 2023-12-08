@@ -38,7 +38,8 @@ describe Decidim::HelsinkiProfile::GdprApi::V1::ProfilesController, type: :contr
   let(:pseudonymized_pin) do
     Digest::MD5.hexdigest("FI:010400A901X:#{Rails.application.secrets.secret_key_base}")
   end
-  let(:jwt) { oidc_server.jwt({ sub: profile_uuid, scope: gdpr_scopes }.merge(jwt_payload)).sign(jwt_key) }
+  let(:jwt) { oidc_server.jwt({ aud: gdpr_audience, sub: profile_uuid, scope: gdpr_scopes }.merge(jwt_payload)).sign(jwt_key) }
+  let(:gdpr_audience) { Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_client_id] }
   let(:gdpr_scopes) { Decidim::HelsinkiProfile.gdpr_scopes.values.join(" ") }
   let(:jwt_payload) { {} }
   let(:jwt_key) do
@@ -82,11 +83,11 @@ describe Decidim::HelsinkiProfile::GdprApi::V1::ProfilesController, type: :contr
     end
 
     context "when the token is signed with the client secret" do
-      let(:jwt_key) { Decidim::HelsinkiProfile.omniauth_secrets[:auth_client_secret] }
+      let(:jwt_key) { Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_client_secret] }
 
       [:HS256, :HS384, :HS512].each do |alg|
         context "with #{alg}" do
-          let(:jwt) { oidc_server.jwt(sub: profile_uuid, scope: gdpr_scopes).sign(jwt_key, alg) }
+          let(:jwt) { oidc_server.jwt(aud: gdpr_audience, sub: profile_uuid, scope: gdpr_scopes).sign(jwt_key, alg) }
 
           it "responds with '#{response_code}'" do
             expect(response).to have_http_status(response_code)
@@ -173,7 +174,7 @@ describe Decidim::HelsinkiProfile::GdprApi::V1::ProfilesController, type: :contr
 
         [:HS256, :HS384, :HS512].each do |alg|
           context "with #{alg}" do
-            let(:jwt) { oidc_server.jwt(sub: profile_uuid).sign(jwt_key, alg) }
+            let(:jwt) { oidc_server.jwt(aud: gdpr_audience, sub: profile_uuid, scope: gdpr_scopes).sign(jwt_key, alg) }
 
             it "responds with 401" do
               expect(response).to have_http_status(:unauthorized)

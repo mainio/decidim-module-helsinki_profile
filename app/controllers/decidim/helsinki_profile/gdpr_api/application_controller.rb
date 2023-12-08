@@ -72,7 +72,17 @@ module Decidim
         end
 
         def oidc
-          @oidc ||= Decidim::HelsinkiProfile::Oidc::Connector.new(:auth)
+          # Note that the `:gdpr_client_secret` configuration below does not
+          # need to be set for environments that do not use any of the JWT token
+          # signing algorithms that require the secret to verify the signature.
+          #
+          # These algorithms are tested during testing but in the actual
+          # Keycloak servers, it is not required, i.e. it can be `nil` or unset.
+          @oidc ||= Decidim::HelsinkiProfile::Oidc::Connector.new(
+            Decidim::HelsinkiProfile.omniauth_secrets[:auth_uri],
+            Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_client_id],
+            Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_client_secret]
+          )
         end
       end
     end

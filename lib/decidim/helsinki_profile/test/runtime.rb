@@ -25,9 +25,13 @@ module Decidim
               auth_uri: auth_server.uri,
               auth_client_id: "auth-client",
               auth_client_secret: "abcdef1234567890",
-              gdpr_client_id: "gdpr-client-id",
               profile_api_uri: profile_api.uri,
-              profile_api_client_id: "profile-api-dev"
+              profile_api_client_id: "profile-api-dev",
+              gdpr_client_id: "gdpr-client-id",
+              # Note that the GDPR client secret is not normally exposed to
+              # Decidim. We just need this during testing to test the specific
+              # JWT signing algorithms that use the client secret for signing.
+              gdpr_client_secret: "fedcba0987654321"
             }
           }
 

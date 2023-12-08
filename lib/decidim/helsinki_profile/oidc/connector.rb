@@ -10,9 +10,15 @@ module Decidim
         # Creates an OIDC connector object which can be used to communicate with
         # the given OIDC server.
         #
-        # @param key [String] The key of the connected service
-        def initialize(server)
-          @server = server
+        # @param server_uri [String] The URI of the connected OIDC server
+        # @param client_id [String] The client ID for the OIDC server
+        # @param client_secret [String] The client secret for the OIDC server in
+        #   case one of the algorithms HS256, HS384 or HS512 is used to sign the
+        #   tokens at the server side
+        def initialize(server_uri, client_id, client_secret = nil)
+          @server_uri = server_uri
+          @client_id = client_id
+          @client_secret = client_secret
         end
 
         def authorize_header!(header, **kwargs)
@@ -31,7 +37,6 @@ module Decidim
 
           raise InvalidTokenError unless id_token
 
-          client_id = Decidim::HelsinkiProfile.omniauth_secrets["#{server}_client_id".to_sym]
           id_token.verify!(
             issuer: config.issuer,
             audience: client_id,
@@ -59,7 +64,7 @@ module Decidim
 
         private
 
-        attr_reader :server
+        attr_reader :server_uri, :client_id, :client_secret
 
         # Decode the token from the authorization header and verify it against
         # the key identified by the "kid" as supplied with the JWT or when no
@@ -73,8 +78,11 @@ module Decidim
 
           case jwt.algorithm.to_sym
           when :HS256, :HS384, :HS512
-            secret = Decidim::HelsinkiProfile.omniauth_secrets["#{server}_client_secret".to_sym]
-            jwt.verify!(secret)
+            # Note that these alhorithms should not be normally needed with the
+            # actual authentication server because the client secret is not
+            # exposed to the end service (i.e. Decidim). We just have added the
+            # support for these as well.
+            jwt.verify!(client_secret)
             return ::OpenIDConnect::ResponseObject::IdToken.new(jwt)
           else
             if jwt.kid
@@ -103,7 +111,6 @@ module Decidim
         def discover!
           raise NotConfiguredError unless Decidim::HelsinkiProfile.configured?
 
-          server_uri = Decidim::HelsinkiProfile.omniauth_secrets["#{server}_uri".to_sym]
           Decidim::HelsinkiProfile.discovery_request(server_uri) do
             OpenIDConnect::Discovery::Provider::Config.discover!(server_uri)
           end

@@ -135,8 +135,7 @@ module Decidim
         def userinfo(authorization)
           return if authorization.blank?
 
-          oidc = Decidim::HelsinkiProfile::Oidc::Connector.new(:auth)
-          token = oidc.authorize_header!(authorization)
+          token = auth_connector.authorize_header!(authorization)
 
           profile = Decidim::HelsinkiProfile::Test::ProfileGraphql::Server.instance.profile(token.sub)
 
@@ -185,9 +184,8 @@ module Decidim
 
           # The authorization header is validated against the auth server to
           # issue a token that is valid for the profile API.
-          oidc = Decidim::HelsinkiProfile::Oidc::Connector.new(:auth)
-          token = oidc.authorize_header!(authorization)
-          oidc.validate_scope!("profile")
+          token = auth_connector.authorize_header!(authorization)
+          auth_connector.validate_scope!("profile")
 
           token(
             scope: default_token_scope,
@@ -199,6 +197,14 @@ module Decidim
 
         def default_token_scope
           "add-ad-groups-claim profile"
+        end
+
+        def auth_connector
+          @auth_connector ||= Decidim::HelsinkiProfile::Oidc::Connector.new(
+            Decidim::HelsinkiProfile.omniauth_secrets[:auth_uri],
+            Decidim::HelsinkiProfile.omniauth_secrets[:auth_client_id],
+            Decidim::HelsinkiProfile.omniauth_secrets[:auth_client_secret]
+          )
         end
       end
     end

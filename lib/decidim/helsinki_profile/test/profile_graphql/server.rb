@@ -81,7 +81,11 @@ module Decidim
           end
 
           def oidc
-            @oidc ||= Decidim::HelsinkiProfile::Oidc::Connector.new(:auth)
+            @oidc ||= Decidim::HelsinkiProfile::Oidc::Connector.new(
+              Decidim::HelsinkiProfile.omniauth_secrets[:auth_uri],
+              Decidim::HelsinkiProfile.omniauth_secrets[:auth_client_id],
+              Decidim::HelsinkiProfile.omniauth_secrets[:auth_client_secret]
+            )
           end
         end
       end

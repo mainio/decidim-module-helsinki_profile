@@ -54,7 +54,9 @@ module Decidim
             params[:uuid]
           )
           identity = Identity.find_by(
-            user: current_organization.users,
+            # Note that the `.unscoped` call is relevant for the privacy module
+            # which hides the non-published users by default.
+            user: Decidim::User.unscoped.where(organization: current_organization),
             provider: "helsinki",
             uid: uid_signature
           )

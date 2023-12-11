@@ -32,6 +32,8 @@ describe Decidim::HelsinkiProfile::GdprApi::V1::ProfilesController, type: :contr
     {
       gender: "m",
       date_of_birth: "2001-04-01",
+      postal_code: "00210",
+      municipality: "091",
       pin_digest: pseudonymized_pin
     }
   end

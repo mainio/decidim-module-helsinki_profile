@@ -39,7 +39,7 @@ module Decidim
           return if authorization.expired?
 
           metadata = authorization.metadata
-          data = [:gender, :date_of_birth].index_with { |key| metadata[key.to_s] }.compact
+          data = [:gender, :date_of_birth, :postal_code, :municipality].index_with { |key| metadata[key.to_s] }.compact
           return if data.blank?
 
           export_value("authorization", data)

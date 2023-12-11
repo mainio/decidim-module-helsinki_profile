@@ -188,16 +188,18 @@ module Decidim
                   token: token_info,
                   profile: api_client.fetch
                 }
-              rescue Decidim::HelsinkiProfile::ProfileApi::QueryError
+              rescue Decidim::HelsinkiProfile::ProfileApi::AuthenticationError, Decidim::HelsinkiProfile::ProfileApi::QueryError
                 # Most likely cases when this can happen:
-                # 1) The client fails to fetch a token for the profile API which
+                # 1) The profile GraphQL API is not available to connect to or
+                #    the URL is misconfigured.
+                # 2) The client fails to fetch a token for the profile API which
                 #    is likely because incorrect "audience" provided for the
                 #    token request.
-                # 2) The client fails to fetch the details from the profile API
+                # 3) The client fails to fetch the details from the profile API
                 #    because the user has not given permissions for this service
                 #    to fetch the verified personal information which is
                 #    required for a successful authorization.
-                # 3) The user does not have any verified personal information
+                # 4) The user does not have any verified personal information
                 #    currently stored at the profile API, i.e. they are not
                 #    identified using a strong identification method.
                 { oauth: oauth_raw_info, token: token_info }

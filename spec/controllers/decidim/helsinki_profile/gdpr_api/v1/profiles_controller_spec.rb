@@ -84,6 +84,14 @@ describe Decidim::HelsinkiProfile::GdprApi::V1::ProfilesController, type: :contr
       end
     end
 
+    context "when the scope is provided as an array" do
+      let(:gdpr_scopes) { Decidim::HelsinkiProfile.gdpr_scopes.values }
+
+      it "responds with '#{response_code}'" do
+        expect(response).to have_http_status(response_code)
+      end
+    end
+
     context "when the token is signed with the client secret" do
       let(:jwt_key) { Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_client_secret] }
 

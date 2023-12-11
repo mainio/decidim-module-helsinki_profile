@@ -10,6 +10,11 @@ residents to login to different city services with a single profile and manage
 their data in one place. It works through OpenID connect that handles the user
 authentication flows.
 
+Before installing this module or starting the integration process, it is highly
+recommended to familiarize yourself with the
+[overview documentation](./docs/HELSINKI_PROFILE_OVERVIEW.md) to get the basic
+understanding on how this integration and the Helsinki profile works.
+
 The gem has been developed by [Mainio Tech](https://www.mainiotech.fi/).
 
 The development has been sponsored by the

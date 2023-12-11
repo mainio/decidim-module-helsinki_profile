@@ -68,37 +68,6 @@ module OmniAuth
         super
       end
 
-      # def callback_phase
-      #   error = params['error_reason'] || params['error']
-      #   error_description = params['error_description'] || params['error_reason']
-      #   invalid_state = (options.require_state && params['state'].to_s.empty?) || params['state'] != stored_state
-
-      #   raise CallbackError, error: params['error'], reason: error_description, uri: params['error_uri'] if error
-      #   raise CallbackError, error: :csrf_detected, reason: "Invalid 'state' parameter" if invalid_state
-
-      #   return unless valid_response_type?
-
-      #   options.issuer = issuer if options.issuer.nil? || options.issuer.empty?
-
-      #   verify_id_token!(params['id_token']) if configured_response_type == 'id_token'
-      #   discover!
-      #   client.redirect_uri = redirect_uri
-
-      #   return id_token_callback_phase if configured_response_type == 'id_token'
-
-      #   client.authorization_code = authorization_code
-      #   access_token
-      #   super
-      # rescue CallbackError => e
-      #   fail!(e.error, e)
-      # rescue ::Rack::OAuth2::Client::Error => e
-      #   fail!(e.response[:error], e)
-      # rescue ::Timeout::Error, ::Errno::ETIMEDOUT => e
-      #   fail!(:timeout, e)
-      # rescue ::SocketError => e
-      #   fail!(:failed_to_connect, e)
-      # end
-
       private
 
       def verify_id_token!(id_token)

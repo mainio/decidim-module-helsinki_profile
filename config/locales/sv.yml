@@ -1,0 +1,38 @@
+sv:
+  decidim:
+    authorization_handlers:
+      helsinki_idp:
+        explanation: Identifiera dig själv med hjälp av Helsingforsprofilen.
+        name: Helsingforsprofilen
+    system:
+      organizations:
+        omniauth_settings:
+          helsinki:
+            auth_uri: Autentiseringsserveradress, URI
+            auth_client_id: Autentiseringsklient-ID (Client ID)
+            auth_client_secret: Autentiseringsklienthemlighet (Client secret)
+            gdpr_client_id: GDPR-autentiseringsklient-ID (Client ID)
+            profile_api_uri: Profil GraphQL API-serveradress, URI
+            profile_api_client_id: Profil GraphQL API-klient-ID (Client ID)
+    helsinki_profile:
+      omniauth_callbacks:
+        failure:
+          already_authorized: En annan användare har redan auktoriserat sig med samma identitet.
+          conditions: Begäran om autentisering hanterades inte inom en tillåten tidsram. Var god försök igen.
+          identity_bound_to_other_user: En annan användare har redan identifierats med denna identitet. Logga ut och logga in igen direkt med hjälp av Helsingforsprofilen.
+          invalid_data: Dina identifieringsuppgifter är otillräckliga. Kontrollera att du har gett tillåtelse för denna tjänst för att få dina uppgifter via Helsingforsprofilen.
+          missing_identifier: Identifieringstjänsten gav inte en unik identifierare för din profil. Kontakta systemadministratören.
+          missing_person_identifier: Identifieringstjänsten angav inte din ämnesidentifierare (sub). Kontakta systemadministratören.
+          session_expiration: Autentiseringssessionen har löpt ut. Var god försök igen.
+          success_status: Autentiseringen misslyckades eller avbröts. Var god försök igen.
+      verification:
+        authorizations:
+          create:
+            success: Du har blivit auktoriserad genom Helsingforsprofilen
+          destroy:
+            success: Auktoriseringen har återställts.
+    verifications:
+      authorizations:
+        first_login:
+          actions:
+            helsinkiprofile_idp: Helsingforsprofilen

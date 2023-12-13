@@ -60,7 +60,7 @@
  <path d="m80.675 488.17h450.73" fill="none" stroke="#000" stroke-width="2.1167"/>
  <path d="m539.34 524.41h-450.73" fill="none" stroke="#000" stroke-width="2.1167"/>
  <text x="531.31342" y="506.47781" fill="#000000" font-family="sans-serif" font-size="4.7625px" letter-spacing="0px" stroke-width=".26458" text-align="end" text-anchor="end" word-spacing="0px" style="line-height:1.25" xml:space="preserve"><tspan x="531.31342" y="506.47781" font-weight="bold" text-align="end">GDPR Delete request</tspan><tspan x="531.31342" y="512.43097" text-align="end">HTTP DELETE /gdpr-api/v1/profiles/&lt;uuid&gt;</tspan><tspan x="531.31342" y="518.38409" text-align="end">Authorization: Bearer &lt;gdpr-api-access-token&gt;</tspan></text>
- <text x="87.285454" y="544.25031" fill="#000000" font-family="sans-serif" font-size="4.7625px" letter-spacing="0px" stroke-width=".26458" word-spacing="0px" style="line-height:1.25" xml:space="preserve"><tspan x="87.285454" y="544.25031" font-weight="bold">GDPR Query response</tspan><tspan x="87.285454" y="550.20343">HTTP 200</tspan></text>
+ <text x="87.285454" y="544.25031" fill="#000000" font-family="sans-serif" font-size="4.7625px" letter-spacing="0px" stroke-width=".26458" word-spacing="0px" style="line-height:1.25" xml:space="preserve"><tspan x="87.285454" y="544.25031" font-weight="bold">GDPR Delete response</tspan><tspan x="87.285454" y="550.20343">HTTP 200</tspan></text>
  <g fill="none" stroke="#000" stroke-width="2.1167">
   <path d="m80.675 534.31h450.73"/>
   <path d="m440.61 391.68h-351.99"/>

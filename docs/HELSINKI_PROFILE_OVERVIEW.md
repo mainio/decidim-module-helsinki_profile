@@ -14,7 +14,7 @@ server as it simplifies this integration quite a bit. Alternative way to
 implement the Helsinki profile integration is by using Tunnistamo as the
 authenticating entity in case the service needs to preserve the user IDs (`uid`)
 for old users. To keep things as simple as possible, we focus on the direct
-Keycloak implementation as it is defined as the preferred way for new services.
+Keycloak implementation as it is the preferred way for new services.
 
 ## Helsinki profile from integrating service point of view
 
@@ -166,6 +166,14 @@ Content-Type: application/json
 {"query":"{ myProfile { firstName } }"}
 ```
 
+In order to test this locally, you need to install the Open City Profile
+application available at this URL:
+
+https://github.com/City-of-Helsinki/open-city-profile
+
+For this module, the tests are using a locally implemented "dummy" version of
+the GraphQL API that responds to the same queries as the normal API would.
+
 #### Sample GraphQL queries
 
 A sample query against this API that provides all the data needed to authorize
@@ -219,11 +227,25 @@ A full query that contains all of this information at the same time:
 }
 ```
 
+##### Notes about the `verifiedPersonalInformation` field
+
+One thing we noticed during testing is that the `verifiedPersonalInformation`
+can be unset and may return a GraphQL error in case the user has not provided
+permissions for the verified data. But this is not the only case when this
+happens. It can also happen if the verified personal information is not
+available, i.e. the user has not yet signed in through Suomi.fi to Helsinki
+profile.
+
+This can happen if the user has created a Helsinki profile directly using their
+email without authenticating through Suomi.fi, i.e. the so called "weak"
+authentication. The Decidim integration requires the "strong" Suomi.fi
+authentication in some cases, such as during voting.
+
 ### GDPR API implementation at the integrating service side
 
-The GDPR API part was a bit confusing to start with. The simple way to put it is
-that the integrating service should implement two endpoints that Helsinki
-profile can call to perform GDPR requests:
+A simple way to explain the GDPR API is that the integrating service should
+implement two endpoints that the Helsinki profile backend can call to perform
+GDPR requests:
 
 1. User information endpoint to fetch all details the service stores about the
    user (GDPR right of accessing the data and right to data portability).
@@ -251,7 +273,8 @@ https://profile-api.dev.hel.ninja/docs/gdpr-api/
 
 Note particularly that the token's "audience" (`aud`) is the GDPR API client as
 defined by the Helsinki profile team. This client ID should be documented at the
-service integration page documentation.
+service integration page documentation once it is issued by the Helsinki profile
+team for the integrating service.
 
 Once the access token is validated, the endpoints should perform the GDPR
 requests as documented on the above mentioned page for the endpoints and respond
@@ -283,7 +306,7 @@ service can choose which of these identifiers fits best for the particular
 implementation.
 
 The Decidim integration chose `/gdpr-api/v1/profiles` as the base path, so the
-endpoints for the GDPR API is `/gdpr-api/v1/profiles/<uuid>` which accepts both
+endpoint for the GDPR API is `/gdpr-api/v1/profiles/<uuid>` which accepts both
 `GET` and `DELETE` requests. This was provided as an example in some of the
 documentation pages and the linked repositories that show how to implement and
 utilize the API. The Decidim integration uses the user's UUID as the `<uuid>`
@@ -336,10 +359,24 @@ validate the data format in any way, it just prints it out.
 
 This integration utilizes the data serialization API provided by the Decidim
 framework itself and converts the Decidim export format to the type of format
-as shown in the example above. The hierarchican structure (parent -> child) with
+as shown in the example above. The hierarchical structure (parent -> child) with
 the Decidim objects is not always straight forward as e.g. comments can be
 attached to many different types of objects and it would make the data fetching
 less performant if we were to fetch comments individually for each and every
 object out there. Instead, we return comments as their own data type which
 contains the information to which type of object that comment is for (i.e. the
 commentable association).
+
+#### Testing
+
+The Helsinki profile team provides a GDPR API Tester tool that can be used to
+test the GDPR API integration with the target service locally:
+
+https://github.com/City-of-Helsinki/profile-gdpr-api-tester
+
+This can be used to verify that the integration is working correctly. For a
+successful test, you need to create a user entity at the integrating service
+with the same `uuid` that the tester tool is configured to use.
+
+For this modules, instructions for configuring this module and the tester tool
+are provided in the README.

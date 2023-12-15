@@ -169,6 +169,8 @@ module Decidim
             end
 
             def end_session(_request)
+              @issued_access_token = nil
+
               [302, { "Location" => post_logout_uri }, [""]]
             end
 

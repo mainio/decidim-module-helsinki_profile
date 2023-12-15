@@ -64,47 +64,47 @@ module Decidim
             def profile_data
               {
                 id: "00000000-1111-2222-3333-aaaaaaaaaaaa",
-                firstName: "Heimo",
-                lastName: "Helsinki",
+                first_name: "Heimo",
+                last_name: "Helsinki",
                 nickname: "heimohelsinki",
                 language: "fi",
-                primaryEmail: {
+                primary_email: {
                   id: "aaaaaaaa-bbbb-cccc-dddd-111111111111",
                   primary: true,
-                  email: "heimohelsinki@example.org",
-                  emailType: "PERSONAL",
+                  email: "openid@example.org",
+                  email_type: "PERSONAL",
                   verified: true
                 },
-                primaryAddress: {
+                primary_address: {
                   id: "aaaaaaaa-bbbb-cccc-dddd-222222222222",
                   primary: true,
                   address: "Veneentekijäntie 4 A",
-                  postalCode: "00210",
+                  postal_code: "00210",
                   city: "Helsinki",
-                  countryCode: "FI",
-                  addressType: "WORK"
+                  country_code: "FI",
+                  address_type: "WORK"
                 },
-                verifiedPersonalInformation: {
-                  firstName: "Heimo",
-                  lastName: "Helsinki",
-                  givenName: "Heimo",
+                verified_personal_information: {
+                  first_name: "Heimo",
+                  last_name: "Helsinki",
+                  given_name: "Heimo",
                   # Note that the national ID number is a "test" number (unique
                   # numbers above 900 after the separator) and generated
                   # programmatically.
-                  nationalIdentificationNumber: "070595-987W",
-                  municipalityOfResidence: "Helsinki",
-                  municipalityOfResidenceNumber: "091",
-                  permanentAddress: {
+                  national_identification_number: "070595-987W",
+                  municipality_of_residence: "Helsinki",
+                  municipality_of_residence_number: "091",
+                  permanent_address: {
                     id: "aaaaaaaa-bbbb-cccc-dddd-333333333333",
                     primary: true,
                     address: "Veneentekijäntie 1",
-                    postalCode: "00210",
+                    postal_code: "00210",
                     city: "Helsinki",
-                    countryCode: "FI",
-                    addressType: "HOME"
+                    country_code: "FI",
+                    address_type: "HOME"
                   },
-                  temporaryAddress: nil,
-                  permanentForeignAddress: nil
+                  temporary_address: nil,
+                  permanent_foreign_address: nil
                 }
               }
             end

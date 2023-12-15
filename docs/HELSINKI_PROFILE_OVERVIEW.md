@@ -172,7 +172,10 @@ application available at this URL:
 https://github.com/City-of-Helsinki/open-city-profile
 
 For this module, the tests are using a locally implemented "dummy" version of
-the GraphQL API that responds to the same queries as the normal API would.
+the GraphQL API that responds to the same queries as the normal API would. This
+module also provides a dummy testing server for easier local testing that does
+not require setting up the whole Open City Profile application. Please see the
+repository's README for further information.
 
 #### Sample GraphQL queries
 

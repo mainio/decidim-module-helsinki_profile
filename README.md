@@ -13,7 +13,10 @@ authentication flows.
 Before installing this module or starting the integration process, it is highly
 recommended to familiarize yourself with the
 [overview documentation](./docs/HELSINKI_PROFILE_OVERVIEW.md) to get the basic
-understanding on how this integration and the Helsinki profile works.
+understanding on how this integration and the Helsinki profile works. The whole
+system is a bit more complex than a simple OIDC authentication flow integration,
+so it is recommended to get a basic understading of how the system works to
+begin with.
 
 The gem has been developed by [Mainio Tech](https://www.mainiotech.fi/).
 
@@ -87,7 +90,7 @@ This gem adds the following to Decidim:
 2. Helsinki profile authorization in order to authorize users using the
    Helsinki profile user data (fetched through the Helsinki profile GraphQL
    API).
-3. Helsinki profile GDPR API endpoints that allows the centralized Helsinki
+3. Helsinki profile GDPR API endpoint that allows the centralized Helsinki
    profile application to do programmatic GDPR requests to Decidim (e.g.
    download your data or delete the profile).
 
@@ -103,12 +106,102 @@ and authorize themselves using the same identity provider.
 
 Once the gem is installed, you can test it using local identity services to
 ensure everything is working fine before starting the actual integration to the
-testing/staging/production environments. Note that Helsinki profile will not be
-configured for the localhost domain because Helsinki profile cannot call these
-URIs externally for the GDPR endpoints. Therefore, it needs to be tested locally
-before starting the actual integration process.
+testing/staging/production environments. Note that the actual Helsinki profile
+services will not be configured for the localhost domain because Helsinki
+profile cannot call these URIs externally for the GDPR endpoints. Therefore, it
+needs to be tested locally before starting the actual integration process.
 
-For running locally, you will need to setup the following:
+There are two ways how you can test the authentication flow locally:
+
+1. Using the local rack test server shipped within this repository
+2. By installing Keycloak and the Open City Profile application (i.e. the
+   Helsinki profile application)
+
+If you do not have prior experience with the Helsinki profile, it is highly
+recommended to start with the first option as you can get it up and running very
+quickly compared to installing the actual Helsinki profile environment (i.e.
+Keycloak + Open City Profile application) locally on your machine.
+
+Finally, after you have tested the authentication flow using one or both of the
+methods provided in this documentation, you also need to test that the GDPR API
+endpoints are working correctly following the instructions below.
+
+#### 1. Rack test server
+
+This repository ships with an example test server that is running both, the OIDC
+identity/authentication service and the Helsinki profile GraphQL API server
+serving the strong identity data for the user. Note that the test server is very
+simple implementation that only provides a single user account to test with. It
+is meant to be used as a testing service for testing that all parts of the
+authentication flow and the integration are working properly before testing with
+the actual Helsinki profile services.
+
+To start the example testing the server, please follow these steps:
+
+1. Clone this repository and enter the repository folder
+```bash
+$ git clone https://github.com/mainio/decidim-module-helsinki_profile.git
+$ cd decidim-module-helsinki_profile
+```
+2. Install the local development gems
+```bash
+$ bundle
+```
+3. Start the test server by running the following command (make sure you have
+   ports 8000 and 8080 available for the testing services):
+```bash
+$ bundle exec ./bin/test_server
+```
+
+After this, you have two testing servers running in the following ports on your
+localhost:
+
+- **8080**: OIDC identity/authentication server
+- **8000**: Dummy GraphQL API replicating the Helsinki profile GraphQL API
+
+After you have the server(s) up and running, use the following configuration at
+the Decidim instance where you installed the module to connect to these
+services (note that the client IDs and secrets need to match the ones provided
+in the following example):
+
+```
+HELSINKIPROFILE_AUTH_URI=http://localhost:8080/auth/realms/helsinki-tunnistus
+HELSINKIPROFILE_AUTH_CLIENT_ID=decidim_client
+HELSINKIPROFILE_AUTH_CLIENT_SECRET=decidim_secret
+HELSINKIPROFILE_PROFILE_API_URI=http://localhost:8000/graphql/
+HELSINKIPROFILE_PROFILE_API_CLIENT_ID=profile-api-dev
+
+# Note that the GDPR client ID will become relevant at the next stage when we
+# will test the GDPR API provided by this module.
+HELSINKIPROFILE_GDPR_CLIENT_ID=exampleapi
+```
+
+Once you have these configurations in place, start the Decidim server, enable
+the Helsinki profile authentication through the Decidim's `/system` panel and
+go ahead and test the sign in flow using Helsinki profile.
+
+After a successful authentication, you should have a new user created to Decidim
+which is authorized with the example data provided by the dummy GraphQL API.
+
+To verify this, you can use the following commands within the Decidim's Rails
+console to check what details have been passed back to Decidim from the dummy
+services:
+
+```irb
+> user = Decidim::User.unscoped.find_by(email: "openid@example.org")
+> user
+> Decidim::Authorization.find_by(user: user).metadata
+```
+
+#### 2. Keycloak and Open City Profile (i.e. the Helsinki profile app)
+
+For running the actual services locally, you will need to setup both Keycloak
+and the Open City Profile application (i.e. the Helsinki profile application)
+for your machine locally following these steps.
+
+##### Keycloak
+
+For running Keycloak locally, you will need to setup the following:
 
 1. PostgreSQL database and database user for Keycloak to connect and manage its
    database. This should be straight forward as Decidim also uses PostgreSQL, so
@@ -150,9 +243,37 @@ profile authentication and test authenticating through Helsinki profile while
 you have the Keycloak server up and running. You should be now able to login to
 Decidim using Keycloak.
 
-After this is tested, you can test the GDPR API endpoints using the
+Note that the authorization data will be mostly empty for the authenticated user
+because the Helsinki profile GraphQL API is unavailable at this stage if you do
+not have the Open City Profile application running yet.
+
+##### Open City Profile
+
+Finally, if you want to test the authorization of users against the Helsinki
+profile GraphQL API, you will need to setup the
+[Open City Profile](https://github.com/City-of-Helsinki/open-city-profile)
+application locally on your machine following its installation instructions. It
+is also fine to test this on the staging server once everything else is
+confirmed to be working, if you have already tested the whole flow using the
+test server shipped with this repository. Note that if you run the Open City
+Profile application locally on your machine, you need to use a different port
+than `8080` for it in case you are already running Keycloak on that port (use
+e.g. port `8000`).
+
+The relevant configurations at the Decidim side for the Helsinki profile GraphQL
+API are the following:
+
+```
+HELSINKIPROFILE_PROFILE_API_URI=http://localhost:8000/graphql/
+HELSINKIPROFILE_PROFILE_API_CLIENT_ID=profile-api-dev
+```
+
+#### GDPR API testing
+
+After the authentication and authorization flows are tested, you can also test
+the GDPR API endpoints using the
 [Helsinki profile GDPR API Tester](https://github.com/City-of-Helsinki/profile-gdpr-api-tester).
-Set this tool up following the insallation instructions and use the following
+Set this tool up following its installation instructions and use the following
 `.env` configuration file to connect to Decidim and matching with the Decidim
 configurations:
 
@@ -183,7 +304,7 @@ as is configured for the tester (`USER_UUID`). In order to do this, run the
 following rake task through the console:
 
 ```bash
-$ bundle exec rake decidim:helsinki_profile:create_test_user[1,9e14df7c-81f6-4c41-8578-6aa7b9d0e5c0,gdprtest@example.org]
+$ bundle exec rake decidim:helsinki_profile:create_test_user[1,9e14df7c-81f6-4c41-8578-6aa7b9d0e5c0,openid@example.org]
 ```
 
 The arguments for the command are the following:
@@ -192,17 +313,15 @@ The arguments for the command are the following:
 2. The UUID for the user record at the "other side" (i.e. Helsinki profile)
 3. The email address of the user at Decidim
 
-Now run the Helsinki profile GDPR API Tester tool and test the commands `query`,
-`delete dryrun` and `delete` to verify the integration is working properly.
+Note that if you have already used the test server shipped within this
+repository to test the authentication and authorization flow, you should already
+have a user within the organization with the UUID and email provided in the
+example above. If you want, you can also change these parameters as long as you
+configure the same UUID for the tester tool.
 
-Finally, if you want to test the authorization of users against the Helsinki
-profile GraphQL API, you will need to setup the
-[Open city profile](https://github.com/City-of-Helsinki/open-city-profile)
-application locally on your machine following its installation instructions. It
-is also fine to test this on the staging server once everything else is
-confirmed to be working. Note that if you run the Open city profile application
-locally on your machine, you need to use a different port than `8080` for it in
-case you are already running Keycloak on that port.
+Now run the Helsinki profile GDPR API Tester tool following its instructions and
+test the commands `query`, `delete dryrun` and `delete` to verify the
+integration is working properly.
 
 ### Using with the actual Helsinki profile service (dev/test/stage/prod)
 

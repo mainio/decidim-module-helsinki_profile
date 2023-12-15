@@ -1,0 +1,52 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# This is a simple test server implementation for testing the Helsinki profile
+# integration. It consists of the following parts:
+#
+# 1. OICD server for authentication and authorization (default port 8080)
+# 2. Helsinki profile GraphQL API implementation for fetching profile details
+#    (default port 8000)
+
+required_gems = %w(decidim-api)
+required_gems.each do |gem|
+  path = Gem.loaded_specs[gem].full_gem_path
+  $LOAD_PATH.unshift(File.expand_path("lib", path))
+end
+$LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
+
+require "decidim/helsinki_profile/test/test_app"
+
+oidc_port = ENV.fetch("HELSINKI_PROFILE_OIDC_PORT", 8080)
+graphql_port = ENV.fetch("HELSINKI_PROFILE_GRAPHQL_PORT", 8000)
+
+# OIDC thread
+oicd_app = Decidim::HelsinkiProfile::Test::TestApp::Rack::Oidc.new
+oicd_server = Decidim::HelsinkiProfile::Test::TestApp::Server.new(oicd_app)
+oidc_tread = Thread.new do
+  oicd_server.serve(oidc_port, name: "hp-oicd")
+end
+
+# GraphQL thread
+graphql_app = Decidim::HelsinkiProfile::Test::TestApp::Rack::Graphql.new
+graphql_server = Decidim::HelsinkiProfile::Test::TestApp::Server.new(graphql_app)
+graphql_thread = Thread.new do
+  graphql_server.serve(graphql_port, name: "hp-graphql")
+end
+
+# Listen for the termination and interrupt signals
+Signal.trap "SIGTERM" do
+  oicd_server.graceful_stop
+  graphql_server.graceful_stop
+end
+
+Signal.trap "SIGINT" do
+  oicd_server.stop
+  graphql_server.stop
+end
+
+# Wait for threads to finish
+oidc_tread.join
+graphql_thread.join
+
+puts "Server shut down."

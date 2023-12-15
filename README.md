@@ -169,12 +169,6 @@ LOA=substantial
 SID=00000000-0000-4000-9000-000000000001
 ```
 
-Also note that at the time of writing this, there was the following issue with
-the testing tool that requires the described fix in the tool's `routes.py` file
-for the tool to work correctly with this module:
-
-https://github.com/City-of-Helsinki/profile-gdpr-api-tester/issues/5
-
 During testing, change the following configuration at the Decidim's side within
 the `.rben-vars` file (assuming you are using rbenv) and restart the server:
 
@@ -194,7 +188,7 @@ $ bundle exec rake decidim:helsinki_profile:create_test_user[1,9e14df7c-81f6-4c4
 
 The arguments for the command are the following:
 
-1. The organization where the user is created at
+1. The organization ID where the user is created at
 2. The UUID for the user record at the "other side" (i.e. Helsinki profile)
 3. The email address of the user at Decidim
 

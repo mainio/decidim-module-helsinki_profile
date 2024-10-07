@@ -9,16 +9,16 @@ namespace :decidim do
       uid_signature = Decidim::OmniauthRegistrationForm.create_signature("helsinki", args.uuid)
       identity = Decidim::Identity.find_by(
         # Unscoped needed for this to work with the privacy module
-        user: Decidim::User.unscoped.where(organization: organization),
+        user: Decidim::User.unscoped.where(organization:),
         provider: "helsinki",
         uid: uid_signature
       )
       user = identity.user if identity
-      user ||= Decidim::User.unscoped.find_by(organization: organization, email: args.email)
+      user ||= Decidim::User.unscoped.find_by(organization:, email: args.email)
       user ||= Decidim::User.create!(
-        organization: organization,
+        organization:,
         email: args.email,
-        nickname: Decidim::UserBaseEntity.nicknamize("helsinkiprofile_test", organization: organization),
+        nickname: Decidim::UserBaseEntity.nicknamize("helsinkiprofile_test", organization:),
         name: "Terry Testing",
         password: "decidim123456789",
         password_confirmation: "decidim123456789",
@@ -29,7 +29,7 @@ namespace :decidim do
       )
       unless identity
         user.identities.create!(
-          organization: organization,
+          organization:,
           provider: "helsinki",
           uid: uid_signature
         )
@@ -48,7 +48,7 @@ namespace :decidim do
 
         Decidim::Authorization.create!(
           name: "helsinki_idp",
-          user: user,
+          user:,
           unique_id: uid_signature,
           pseudonymized_pin: national_id_digest,
           granted_at: Time.current,

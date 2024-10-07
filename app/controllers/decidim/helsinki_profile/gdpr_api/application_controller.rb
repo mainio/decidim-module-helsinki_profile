@@ -33,15 +33,15 @@ module Decidim
           elsif data
             render body: data, content_type: "application/json"
           else
-            render body: nil, status: :no_content, content_type: "application/json"
+            head :no_content
           end
         end
 
         def error(code, message, status: :internal_server_error)
           render body: {
-            code: code,
-            message: message
-          }, status: status, content_type: "application/json"
+            code:,
+            message:
+          }, status:, content_type: "application/json"
         end
 
         def authorize!

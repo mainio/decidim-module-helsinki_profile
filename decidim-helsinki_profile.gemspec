@@ -7,7 +7,7 @@ require "decidim/helsinki_profile/version"
 Gem::Specification.new do |spec|
   spec.name = "decidim-helsinki_profile"
   spec.version = Decidim::HelsinkiProfile.version
-  spec.required_ruby_version = ">= 3.0"
+  spec.required_ruby_version = ">= 3.1"
   spec.authors = ["Antti Hukkanen"]
   spec.email = ["antti.hukkanen@mainiotech.fi"]
   spec.metadata["rubygems_mfa_required"] = "true"

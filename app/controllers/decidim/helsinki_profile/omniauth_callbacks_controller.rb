@@ -63,11 +63,13 @@ module Decidim
         fail_authorize(:identity_bound_to_other_user)
       end
 
+      def failure; end
+
       # This should not do anything as it is a callback for OIDC "silent"
       # authentication, i.e. when the authentication request was initiated with
       # `prompt=none`. It could be used for SPA flows to fetch a refresh token.
       def helsinki_silent
-        return render body: nil, status: :no_content unless user_signed_in?
+        return head :no_content unless user_signed_in?
 
         render body: "Success"
       end

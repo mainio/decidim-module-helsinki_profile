@@ -36,7 +36,7 @@ module Decidim
         #   * Statistics about the voters (customer request)
         def identity_metadata
           base_data = {
-            postal_code: postal_code,
+            postal_code:,
             municipality: verified_personal_info[:municipality_of_residence_number],
             permanent_address: verified_personal_info[:permanent_address].present?
           }.compact
@@ -58,8 +58,8 @@ module Decidim
           date_of_birth = hetu.date_of_birth.to_s
 
           base_data.merge(
-            gender: gender,
-            date_of_birth: date_of_birth,
+            gender:,
+            date_of_birth:,
             pin_digest: national_id_digest
           )
         end

@@ -53,17 +53,17 @@ FactoryBot.define do
     nickname { generate(:nickname) }
     language { "fi" }
     primary_email { create(:helsinki_profile_email, :primary) }
-    primary_address { create(:helsinki_profile_address, :primary, locale: locale, city: city, country_code: country_code) }
+    primary_address { create(:helsinki_profile_address, :primary, locale:, city:, country_code:) }
     verified_personal_information do
       create(
         :helsinki_profile_personal_info,
         municipality_of_residence: city,
-        country_code: country_code,
+        country_code:,
         address: primary_address,
-        address_type: address_type,
-        locale: locale,
-        first_name: first_name,
-        last_name: last_name,
+        address_type:,
+        locale:,
+        first_name:,
+        last_name:,
         given_name: first_name
       )
     end
@@ -96,8 +96,8 @@ FactoryBot.define do
           :helsinki_profile_address,
           *traits,
           city: municipality_of_residence,
-          country_code: country_code,
-          locale: locale
+          country_code:,
+          locale:
         )
       end
     end

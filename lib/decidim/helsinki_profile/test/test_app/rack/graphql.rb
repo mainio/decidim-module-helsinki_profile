@@ -26,7 +26,7 @@ module Decidim
               }
               result = Decidim::HelsinkiProfile::Test::ProfileGraphql::Schema.execute(
                 body["query"],
-                context: context,
+                context:,
                 variables: {},
                 operation_name: nil
               )

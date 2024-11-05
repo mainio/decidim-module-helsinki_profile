@@ -110,7 +110,7 @@ module Decidim
                   }
                 ]
               },
-              scope: scope,
+              scope:,
               sid: Faker::Internet.uuid,
               amr: ["suomi_fi"],
               loa: "substantial"

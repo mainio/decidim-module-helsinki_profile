@@ -21,8 +21,8 @@ module Decidim
 
         def another_user_reserved_email?(email)
           Decidim::User.unscoped.where.not(id: @user.id).exists?(
-            organization: organization,
-            email: email
+            organization:,
+            email:
           )
         end
       end

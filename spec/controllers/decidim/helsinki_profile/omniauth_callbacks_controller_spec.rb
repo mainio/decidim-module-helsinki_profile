@@ -158,7 +158,7 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
     context "when user is signed in" do
       let(:session) { nil }
       let!(:confirmed_user) do
-        create(:user, :confirmed, organization: organization)
+        create(:user, :confirmed, organization:)
       end
 
       before do
@@ -193,7 +193,7 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
     end
 
     context "when using remember me" do
-      let(:confirmed_user) { create(:user, :confirmed, organization: organization) }
+      let(:confirmed_user) { create(:user, :confirmed, organization:) }
 
       before do
         sign_in confirmed_user
@@ -213,9 +213,9 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
     end
 
     context "when identity is bound to another user" do
-      let(:confirmed_user) { create(:user, :confirmed, organization: organization) }
-      let(:another_user) { create(:user, :confirmed, organization: organization) }
-      let!(:identity) { create(:identity, user: another_user, provider: "helsinki", uid: profile[:id], organization: organization) }
+      let(:confirmed_user) { create(:user, :confirmed, organization:) }
+      let(:another_user) { create(:user, :confirmed, organization:) }
+      let!(:identity) { create(:identity, user: another_user, provider: "helsinki", uid: profile[:id], organization:) }
 
       before do
         sign_in confirmed_user
@@ -242,11 +242,11 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
   describe "GET /users/auth/helsinki/silent" do
     it "responds with no content" do
       get("/users/auth/helsinki/silent?code=#{code}&state=#{omniauth_state}", **request_args)
-      expect(response.code).to eq("204")
+      expect(response).to have_http_status(:no_content)
     end
 
     context "when the user is signed in" do
-      let(:user) { create(:user, :confirmed, organization: organization) }
+      let(:user) { create(:user, :confirmed, organization:) }
 
       before do
         sign_in user
@@ -254,7 +254,7 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
 
       it "responds with success" do
         get("/users/auth/helsinki/silent?code=#{code}&state=#{omniauth_state}", **request_args)
-        expect(response.code).to eq("200")
+        expect(response).to have_http_status(:ok)
         expect(response.body).to eq("Success")
       end
     end

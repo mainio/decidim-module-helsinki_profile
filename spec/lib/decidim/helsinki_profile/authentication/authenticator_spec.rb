@@ -23,7 +23,7 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
   let(:token) do
     auth_server.token(
       sub: oauth_uid,
-      amr: amr,
+      amr:,
       scope: Decidim::HelsinkiProfile.auth_scopes.map(&:to_s).join(" ")
     )
   end
@@ -57,7 +57,7 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
     context "when email is available in the OIDC attributes and is reported as verified" do
       let(:oauth_info) { { email: "user@example.org" } }
       let(:email_verified) { true }
-      let(:oauth_raw_info) { base_oauth_raw_info.merge(email_verified: email_verified) }
+      let(:oauth_raw_info) { base_oauth_raw_info.merge(email_verified:) }
 
       context "with suomi_fi" do
         it "returns the email from OIDC attributes" do
@@ -110,7 +110,7 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
   describe "#user_params_from_oauth_hash" do
     shared_examples_for "expected hash" do
       it "returns the expected hash" do
-        signature = ::Decidim::OmniauthRegistrationForm.create_signature(
+        signature = Decidim::OmniauthRegistrationForm.create_signature(
           oauth_provider,
           oauth_uid
         )
@@ -140,7 +140,7 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
           given_name: "Marja",
           family_name: "Mainio",
           national_id_num: "150785-994A",
-          amr: amr
+          amr:
         }
       end
 
@@ -191,7 +191,7 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
   end
 
   describe "#identify_user!" do
-    let(:user) { create(:user, :confirmed, organization: organization) }
+    let(:user) { create(:user, :confirmed, organization:) }
 
     it "creates a new identity for the user" do
       id = subject.identify_user!(user)
@@ -207,7 +207,7 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
     context "when an identity already exists" do
       let!(:identity) do
         user.identities.create!(
-          organization: organization,
+          organization:,
           provider: oauth_provider,
           uid: oauth_uid
         )
@@ -226,7 +226,7 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
       let(:old_oauth_uid) { Faker::Internet.uuid }
       let!(:identity) do
         user.identities.create!(
-          organization: organization,
+          organization:,
           provider: oauth_provider,
           uid: old_oauth_uid
         )
@@ -235,17 +235,17 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
       it "returns a new identity and allows identification" do
         expect(subject.identify_user!(user).id).not_to eq(identity.id)
         expect(
-          Decidim::Identity.where(organization: organization, provider: oauth_provider, user: user).count
+          Decidim::Identity.where(organization:, provider: oauth_provider, user:).count
         ).to eq(2)
       end
     end
 
     context "when a matching identity already exists for another user" do
-      let(:another_user) { create(:user, :confirmed, organization: organization) }
+      let(:another_user) { create(:user, :confirmed, organization:) }
 
       before do
         another_user.identities.create!(
-          organization: organization,
+          organization:,
           provider: oauth_provider,
           uid: oauth_uid
         )
@@ -262,9 +262,9 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
   end
 
   describe "#authorize_user!" do
-    let(:user) { create(:user, :confirmed, organization: organization) }
+    let(:user) { create(:user, :confirmed, organization:) }
     let(:signature) do
-      ::Decidim::OmniauthRegistrationForm.create_signature(
+      Decidim::OmniauthRegistrationForm.create_signature(
         oauth_provider,
         oauth_uid
       )
@@ -319,7 +319,7 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
       let!(:authorization) do
         Decidim::Authorization.create!(
           name: "helsinki_idp",
-          user: user,
+          user:,
           unique_id: signature
         )
       end
@@ -337,7 +337,7 @@ describe Decidim::HelsinkiProfile::Authentication::Authenticator do
     end
 
     context "when a matching authorization already exists for another user" do
-      let(:another_user) { create(:user, :confirmed, organization: organization) }
+      let(:another_user) { create(:user, :confirmed, organization:) }
 
       before do
         Decidim::Authorization.create!(

@@ -2,25 +2,25 @@
 
 require "spec_helper"
 
-describe Decidim::HelsinkiProfile::GdprApi::V1::ProfilesController, type: :controller do
+describe Decidim::HelsinkiProfile::GdprApi::V1::ProfilesController do
   routes { Decidim::HelsinkiProfile::Engine.routes }
 
   let(:organization) { create(:organization) }
-  let(:user) { create(:user, :confirmed, organization: organization) }
-  let!(:identity) { create(:identity, user: user, provider: "helsinki", uid: identity_uid) }
+  let(:user) { create(:user, :confirmed, organization:) }
+  let!(:identity) { create(:identity, user:, provider: "helsinki", uid: identity_uid) }
   let!(:authorization) do
     create(
       :authorization,
-      user: user,
+      user:,
       name: "helsinki_idp",
       unique_id: authorization_unique_id,
-      pseudonymized_pin: pseudonymized_pin,
+      pseudonymized_pin:,
       metadata: authorization_metadata,
       granted_at: authorization_granted_at
     )
   end
   let(:identity_uid) do
-    ::Decidim::OmniauthRegistrationForm.create_signature(
+    Decidim::OmniauthRegistrationForm.create_signature(
       "helsinki",
       profile_uuid
     )
@@ -115,7 +115,7 @@ describe Decidim::HelsinkiProfile::GdprApi::V1::ProfilesController, type: :contr
     end
 
     context "when the user is deleted" do
-      let(:user) { create(:user, :deleted, :confirmed, organization: organization) }
+      let(:user) { create(:user, :deleted, :confirmed, organization:) }
 
       it "responds with 404" do
         expect(response).to have_http_status(:not_found)
@@ -237,7 +237,7 @@ describe Decidim::HelsinkiProfile::GdprApi::V1::ProfilesController, type: :contr
 
   describe "GET show" do
     it_behaves_like "valid authorization", :ok do
-      let(:user_data) { JSON.parse(response.body) }
+      let(:user_data) { response.parsed_body }
 
       it "contains the user information" do
         expect(user_data).to include(export_record(user))
@@ -260,10 +260,10 @@ describe Decidim::HelsinkiProfile::GdprApi::V1::ProfilesController, type: :contr
       end
 
       context "with comments" do
-        let(:component) { create(:dummy_component, organization: organization) }
-        let(:commentable) { create(:dummy_resource, :published, component: component) }
-        let(:user_comments) { create_list(:comment, 5, author: user, commentable: commentable) }
-        let(:other_comments) { create_list(:comment, 10, commentable: commentable) }
+        let(:component) { create(:dummy_component, organization:) }
+        let(:commentable) { create(:dummy_resource, :published, component:) }
+        let(:user_comments) { create_list(:comment, 5, author: user, commentable:) }
+        let(:other_comments) { create_list(:comment, 10, commentable:) }
 
         let!(:data) { user_comments && other_comments }
 
@@ -280,9 +280,9 @@ describe Decidim::HelsinkiProfile::GdprApi::V1::ProfilesController, type: :contr
       end
 
       context "with proposals" do
-        let(:component) { create(:proposal_component, organization: organization) }
-        let(:user_proposals) { create_list(:proposal, 5, users: [user], component: component) }
-        let(:other_proposals) { create_list(:proposal, 10, component: component) }
+        let(:component) { create(:proposal_component, organization:) }
+        let(:user_proposals) { create_list(:proposal, 5, users: [user], component:) }
+        let(:other_proposals) { create_list(:proposal, 10, component:) }
 
         let!(:data) { user_proposals && other_proposals }
 

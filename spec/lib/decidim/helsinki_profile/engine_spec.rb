@@ -49,7 +49,7 @@ describe Decidim::HelsinkiProfile::Engine do
       allow(env).to receive(:[]).with("PATH_INFO").and_return(
         "/users/auth/helsinki"
       )
-      expect(env).to receive(:[]=).with("devise.mapping", ::Devise.mappings[:user])
+      expect(env).to receive(:[]=).with("devise.mapping", Devise.mappings[:user])
       allow(Decidim::HelsinkiProfile::OmniauthCallbacksController).to receive(
         :action
       ).with(:failure).and_return(action)

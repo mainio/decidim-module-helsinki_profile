@@ -10,6 +10,7 @@ require "spec_helper"
 describe Decidim::HelsinkiProfile::Test::ProfileGraphql::Server do
   let(:auth_server) { Decidim::HelsinkiProfile::Test::OidcServer.get(:auth) }
   let(:auth_token) { auth_server.token(sub: profile[:id]) }
+  let(:mock_response) { MockResponse.new }
   let(:response) do
     Net::HTTP.post(
       URI.parse(described_class.instance.uri),
@@ -32,7 +33,7 @@ describe Decidim::HelsinkiProfile::Test::ProfileGraphql::Server do
   end
 
   it "runs the GraphQL query" do
-    expect(response.code).to eq("200")
+    expect(mock_response.status(response)).to eq(200)
     expect(response_data).to eq(
       "myProfile" => { "id" => profile[:id], "firstName" => profile[:first_name] }
     )
@@ -43,7 +44,7 @@ describe Decidim::HelsinkiProfile::Test::ProfileGraphql::Server do
     let(:query) { "myProfile { verifiedPersonalInformation { firstName } }" }
 
     it "runs the GraphQL query" do
-      expect(response.code).to eq("200")
+      expect(mock_response.status(response)).to eq(200)
       expect(response_data).to eq(
         "myProfile" => { "verifiedPersonalInformation" => { "firstName" => profile[:first_name] } }
       )
@@ -56,7 +57,7 @@ describe Decidim::HelsinkiProfile::Test::ProfileGraphql::Server do
       end
 
       it "returns an error" do
-        expect(response.code).to eq("200")
+        expect(mock_response.status(response)).to eq(200)
         expect(response_data).to eq(
           "myProfile" => { "verifiedPersonalInformation" => nil }
         )
@@ -78,7 +79,7 @@ describe Decidim::HelsinkiProfile::Test::ProfileGraphql::Server do
     let(:auth_token) { "foobar" }
 
     it "returns errors" do
-      expect(response.code).to eq("200")
+      expect(mock_response.status(response)).to eq(200)
       expect(response_data).to eq("myProfile" => nil)
       expect(response_errors).to eq(
         [
@@ -90,6 +91,16 @@ describe Decidim::HelsinkiProfile::Test::ProfileGraphql::Server do
           }
         ]
       )
+    end
+  end
+
+  class MockResponse
+    def status(response)
+      response.code.to_i
+    end
+
+    def body(response)
+      response.body
     end
   end
 end

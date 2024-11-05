@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-describe Decidim::HelsinkiProfile::Verification::AuthorizationsController, type: :controller do
+describe Decidim::HelsinkiProfile::Verification::AuthorizationsController do
   routes { Decidim::HelsinkiProfile::Verification::Engine.routes }
 
   let(:user) { create(:user, :confirmed) }

@@ -19,7 +19,7 @@ module Decidim
             body = JSON.parse(req.body)
             raise "Request body does not contain a query" if body["query"].blank?
 
-            result = execute(body["query"], current_profile: current_profile)
+            result = execute(body["query"], current_profile:)
 
             {
               status: 200,
@@ -28,9 +28,9 @@ module Decidim
           end
 
           def execute(query, variables: {}, operation_name: nil, current_profile: nil)
-            context = { current_profile: current_profile, permissions: permissions }
+            context = { current_profile:, permissions: }
 
-            Schema.execute(query, variables: variables, operation_name: operation_name, context: context)
+            Schema.execute(query, variables:, operation_name:, context:)
           end
 
           def authenticate(authorization)

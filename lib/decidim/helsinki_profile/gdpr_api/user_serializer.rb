@@ -33,7 +33,7 @@ module Decidim
         end
 
         def authorization_data
-          authorization = Authorization.find_by(user: user, name: "helsinki_idp")
+          authorization = Authorization.find_by(user:, name: "helsinki_idp")
           return unless authorization
           return unless authorization.granted?
           return if authorization.expired?
@@ -69,9 +69,9 @@ module Decidim
                 end
               end
             name = record ? key.to_s : key.to_s.pluralize
-            { name: name.upcase, children: children }
+            { name: name.upcase, children: }
           else
-            { key: key.to_s.upcase, value: value }
+            { key: key.to_s.upcase, value: }
           end
         end
       end

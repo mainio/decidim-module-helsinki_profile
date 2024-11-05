@@ -54,7 +54,7 @@ module Decidim
 
         def identify_user!(user)
           identity = user.identities.find_by(
-            organization: organization,
+            organization:,
             provider: oauth_data[:provider],
             uid: user_identifier
           )
@@ -62,7 +62,7 @@ module Decidim
 
           # Check that the identity is not already bound to another user.
           id = Decidim::Identity.find_by(
-            organization: organization,
+            organization:,
             provider: oauth_data[:provider],
             uid: user_identifier
           )
@@ -70,7 +70,7 @@ module Decidim
           raise IdentityBoundToOtherUserError if id
 
           user.identities.create!(
-            organization: organization,
+            organization:,
             provider: oauth_data[:provider],
             uid: user_identifier
           )
@@ -86,7 +86,7 @@ module Decidim
           else
             authorization = Decidim::Authorization.find_or_initialize_by(
               name: "helsinki_idp",
-              user: user
+              user:
             )
           end
 

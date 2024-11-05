@@ -45,8 +45,7 @@ RSpec.configure do |config|
         :nickname_included_in_password?,
         # :email_included_in_password?,
         :domain_included_in_password?,
-        :password_too_common?,
-        :blacklisted?
+        :password_too_common?
       ].freeze
     )
   end

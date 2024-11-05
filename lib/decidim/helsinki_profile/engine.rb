@@ -9,11 +9,13 @@ module Decidim
 
       routes do
         # GDPR API
-        namespace :gdpr_api, path: "gdpr-api" do
-          namespace :v1 do
-            # GET /gdpr-api/v1/profiles/:uuid
-            # DELETE /gdpr-api/v1/profiles/:uuid
-            resources :profiles, only: [:show, :destroy], param: :uuid
+        if Decidim::HelsinkiProfile.gdpr_api_enabled
+          namespace :gdpr_api, path: "gdpr-api" do
+            namespace :v1 do
+              # GET /gdpr-api/v1/profiles/:uuid
+              # DELETE /gdpr-api/v1/profiles/:uuid
+              resources :profiles, only: [:show, :destroy], param: :uuid
+            end
           end
         end
 

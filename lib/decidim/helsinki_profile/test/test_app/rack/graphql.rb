@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "ostruct"
 require "graphql"
 require "decidim/api/types"
 require "decidim/helsinki_profile/test/profile_graphql"

@@ -35,6 +35,8 @@ And then execute:
 
 ```bash
 $ bundle
+$ bundle exec rails decidim_helsinki_profile:install:migrations
+$ bundle exec rails db:migrate
 ```
 
 After installation, add the following to `config/secrets.yml` and configure the

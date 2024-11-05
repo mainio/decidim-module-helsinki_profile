@@ -47,6 +47,13 @@ module Decidim
       true
     end
 
+    # Set this to `false` in case the Helsinki profile authentication server is
+    # used only for AD/Entra authentications. When set to `true` (default), the
+    # GDPR API endpoints are added to the application.
+    config_accessor :gdpr_api_enabled do
+      true
+    end
+
     # Allows changing the auth service name in case we need to perform a
     # "handover" process from the legacy authentication server. Once Helsinki
     # profile is ready to be used, this configuration is no longer needed.

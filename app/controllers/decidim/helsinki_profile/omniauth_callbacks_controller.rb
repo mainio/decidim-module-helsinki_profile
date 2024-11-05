@@ -91,6 +91,19 @@ module Decidim
 
       private
 
+      # Fixes an issue with the login if the user has a pending change password.
+      #
+      # For further details, see:
+      # https://github.com/decidim/decidim/pull/13354
+      #
+      # This can be removed after the above mentioned PR is merged to the core
+      # and the fix is shipped in a release.
+      #
+      # Issue has been fixed in versions 0.27.6 and 0.28.1.
+      def change_password_path
+        decidim.change_password_path
+      end
+
       def authorize_user(user)
         authenticator.authorize_user!(user)
       rescue Decidim::HelsinkiProfile::Authentication::AuthorizationBoundToOtherUserError

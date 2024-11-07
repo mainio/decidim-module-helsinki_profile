@@ -102,6 +102,7 @@ module Decidim
               @post_logout_uri ||= "http://localhost:3000/users/auth/helsinki/post_logout"
             end
 
+            # rubocop:disable Metrics/CyclomaticComplexity
             def authorization(request)
               response_type = request.params["response_type"].to_s
               type_class =
@@ -169,6 +170,7 @@ module Decidim
                 not_found
               end
             end
+            # rubocop:enable Metrics/CyclomaticComplexity
 
             def nonce(request)
               request.params["nonce"]

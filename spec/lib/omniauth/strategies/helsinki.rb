@@ -99,7 +99,7 @@ describe OmniAuth::Strategies::Helsinki do # rubocop:disable RSpec/FilePath
       it "passes the client_id parameter to the authentication service" do
         expect(logout_url).to eq(oicd_config[:end_session_endpoint])
         expect(logout_params).to eq(
-          client_id: client_id,
+          client_id:,
           post_logout_redirect_uri: strategy_options[:post_logout_redirect_uri]
         )
       end

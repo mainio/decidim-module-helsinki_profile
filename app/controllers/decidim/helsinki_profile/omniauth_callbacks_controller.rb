@@ -103,12 +103,12 @@ module Decidim
       def store_id_token_for!(user)
         return unless user
 
-        Decidim::HelsinkiProfile::SessionInfo.destroy_by(user: user)
+        Decidim::HelsinkiProfile::SessionInfo.destroy_by(user:)
 
         id_token = request.env["omniauth-helsinki.id_token"]
         return unless id_token
 
-        Decidim::HelsinkiProfile::SessionInfo.create!(user: user, id_token: id_token)
+        Decidim::HelsinkiProfile::SessionInfo.create!(user:, id_token:)
       end
 
       def authorize_user(user)

@@ -6,7 +6,7 @@ module Decidim
       extend ActiveSupport::Concern
 
       def openid_sign_out(user)
-        user_info = Decidim::HelsinkiProfile::SessionInfo.find_by(user: user) if user
+        user_info = Decidim::HelsinkiProfile::SessionInfo.find_by(user:) if user
         user_info&.destroy!
 
         # The ID token has to be provided for the logout request in order for

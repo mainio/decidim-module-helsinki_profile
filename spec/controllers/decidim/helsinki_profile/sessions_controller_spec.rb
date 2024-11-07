@@ -5,9 +5,9 @@ require "spec_helper"
 describe Decidim::HelsinkiProfile::SessionsController, type: :request do
   let(:organization) { create(:organization) }
   let(:id_token) { "stored_id_token" }
-  let!(:current_user) { create(:user, :confirmed, organization: organization) }
+  let!(:current_user) { create(:user, :confirmed, organization:) }
   let!(:session_info) do
-    Decidim::HelsinkiProfile::SessionInfo.create(user: current_user, id_token: id_token)
+    Decidim::HelsinkiProfile::SessionInfo.create(user: current_user, id_token:)
   end
 
   let(:session) { { "decidim-helsinkiprofile.signed_in" => true } }

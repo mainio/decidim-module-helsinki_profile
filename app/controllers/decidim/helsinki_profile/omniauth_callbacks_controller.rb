@@ -3,6 +3,8 @@
 module Decidim
   module HelsinkiProfile
     class OmniauthCallbacksController < ::Decidim::Devise::OmniauthRegistrationsController
+      include Decidim::HelsinkiProfile::SessionManagement
+
       # Make the view helpers available needed in the views
       helper Decidim::HelsinkiProfile::Engine.routes.url_helpers
       helper_method :omniauth_registrations_path
@@ -28,6 +30,7 @@ module Decidim
           # The user is most likely returning from an authorization request
           # because they are already signed in. In this case, add the
           # authorization and redirect the user back to the authorizations view.
+          store_id_token_for!(current_user)
 
           # Make sure the user has an identity created in order to aid future
           # HelsinkiProfile sign ins. In case this fails, it will raise a
@@ -80,8 +83,12 @@ module Decidim
       # because a succesful HelsinkiProfile authentication means the user has been
       # successfully authorized as well.
       def sign_in_and_redirect(resource_or_scope, *args)
-        # Add authorization for the user
-        return fail_authorize if resource_or_scope.is_a?(::Decidim::User) && !authorize_user(resource_or_scope)
+        if resource_or_scope.is_a?(::Decidim::User)
+          store_id_token_for!(resource_or_scope)
+
+          # Add authorization for the user
+          return fail_authorize unless authorize_user(resource_or_scope)
+        end
 
         super
       end
@@ -92,6 +99,17 @@ module Decidim
       end
 
       private
+
+      def store_id_token_for!(user)
+        return unless user
+
+        Decidim::HelsinkiProfile::SessionInfo.destroy_by(user: user)
+
+        id_token = request.env["omniauth-helsinki.id_token"]
+        return unless id_token
+
+        Decidim::HelsinkiProfile::SessionInfo.create!(user: user, id_token: id_token)
+      end
 
       def authorize_user(user)
         authenticator.authorize_user!(user)
@@ -104,12 +122,7 @@ module Decidim
           "failure.#{failure_message_key}",
           scope: "decidim.helsinki_profile.omniauth_callbacks"
         )
-
-        if session.delete("decidim-helsinkiprofile.signed_in")
-          return redirect_to(
-            decidim_helsinki_profile.user_helsinki_omniauth_logout_path
-          )
-        end
+        return openid_sign_out(current_user) if session.delete("decidim-helsinkiprofile.signed_in")
 
         redirect_path = stored_location_for(resource || :user) || decidim.root_path
         redirect_to redirect_path

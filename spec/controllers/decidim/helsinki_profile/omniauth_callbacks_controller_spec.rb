@@ -27,14 +27,14 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
     {
       env: {
         "rack.session" => request.session,
-        "rack.session.options" => request.session.options,
-        "omniauth-helsinki.id_token" => id_token
+        "rack.session.options" => request.session.options
       }
     }
   end
-  let(:id_token) { "omniauth_id_token" }
   let(:omniauth_state) { request.session["omniauth.state"] }
+  let(:omniauth_nonce) { request.session["omniauth.nonce"] }
   let(:code) { SecureRandom.hex(16) }
+  let(:id_token_payload) { { nonce: omniauth_nonce, groups: ["testing"] } }
 
   before do
     profile_api.register_profile(profile)
@@ -86,7 +86,9 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
         info = Decidim::HelsinkiProfile::SessionInfo.find_by(user: Decidim::User.last)
 
         expect(info).to be_a(Decidim::HelsinkiProfile::SessionInfo)
-        expect(info.id_token).to eq(id_token)
+
+        decoded = JSON::JWT.decode(info.id_token, :skip_verification).to_h
+        expect(decoded.symbolize_keys!).to include(id_token_payload)
       end
 
       context "when the session has a pending redirect" do
@@ -97,6 +99,24 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
 
           expect(user.sign_in_count).to eq(1)
           expect(response).to redirect_to("/processes")
+        end
+      end
+
+      # This spec is just to ensure that the ID token is not stored inside a
+      # cookie as that would cause a cookie overflow exception
+      # (ActionDispatch::Cookies::CookieOverflow) in case it exceeds 4kB in
+      # size.
+      context "when the id token is very long" do
+        # Generate a payload of at least 4kB.
+        let(:id_token_payload) do
+          { nonce: omniauth_nonce, groups: 4.times.map { |num| (97 + num).chr * 1024 } }
+        end
+
+        it "does not cause an exception" do
+          user = Decidim::User.last
+
+          expect(user.sign_in_count).to eq(1)
+          expect(response).to redirect_to("/")
         end
       end
     end
@@ -170,9 +190,10 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
         expect(Decidim::HelsinkiProfile::SessionInfo.find_by(id: previous_info.id)).to be_nil
 
         info = Decidim::HelsinkiProfile::SessionInfo.find_by(user: Decidim::User.last)
-
         expect(info).to be_a(Decidim::HelsinkiProfile::SessionInfo)
-        expect(info.id_token).to eq(id_token)
+
+        decoded = JSON::JWT.decode(info.id_token, :skip_verification).to_h
+        expect(decoded.symbolize_keys!).to include(id_token_payload)
       end
 
       it "redirects to the root path" do
@@ -227,7 +248,16 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
           name: "helsinki_idp"
         )
         expect(authorization).to be_nil
-        expect(response).to redirect_to("/users/auth/helsinki/logout?id_token_hint=#{id_token}")
+
+        info = Decidim::HelsinkiProfile::SessionInfo.find_by(user: confirmed_user)
+        expect(info).to be_nil
+
+        redirect_uri = URI.parse(response.location)
+        redirect_params = Rack::Utils.parse_query(redirect_uri.query).symbolize_keys!
+
+        expect(redirect_uri.host).to eq(organization.host)
+        expect(redirect_uri.path).to eq("/users/auth/helsinki/logout")
+        expect(redirect_params).to match(id_token_hint: /\A[^\s]+\z/)
         expect(flash[:alert]).to eq(
           "Another user has already been identified using this identity. Please sign out and sign in again directly using Helsinki profile."
         )

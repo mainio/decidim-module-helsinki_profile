@@ -141,7 +141,13 @@ module Decidim
                       parts.
                     </p>
                     <form action="#{base_path}/protocol/openid-connect/auth" method="post">
-                      #{keys.map { |key| %(<input type="hidden" name="#{key}" value="#{oauth_request.send(key)}">) }.join("\n    ")}
+                      #{
+                        keys.map do |key|
+                          val = oauth_request.send(key)
+                          val = val.join(" ") if val.is_a?(Array)
+                          %(<input type="hidden" name="#{key}" value="#{val}">)
+                        end.join("\n    ")
+                      }
                       <input name="commit" type="submit" value="approve">
                     </form>
                   </body>

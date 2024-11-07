@@ -71,7 +71,7 @@ module OmniAuth
       private
 
       def verify_id_token!(id_token)
-        session["omniauth-helsinki.id_token"] = id_token if id_token
+        env["omniauth-helsinki.id_token"] = id_token if id_token
 
         super
       end
@@ -85,9 +85,18 @@ module OmniAuth
         # the ID token is deleted during the first time.
         @encoded_post_logout_query ||= begin
           logout_params = {
-            id_token_hint: session.delete("omniauth-helsinki.id_token"),
+            id_token_hint: params["id_token_hint"],
             post_logout_redirect_uri: options.post_logout_redirect_uri
           }.compact
+          # In case the `id_token_hint` is not passed for the logout request,
+          # the authenticating service allows also passing the `client_id`
+          # parameter for identifying the correct authenticating client.
+          # However, with this parameter, the user has to manually click a sign
+          # out link at Keycloak side which makes the logout process more
+          # cumbersome than with the `id_token_hint` parameter with which the
+          # sign out flow is transparent to the user (i.e. they will not even
+          # notice it went through Keycloak).
+          logout_params[:client_id] = client_options.identifier unless logout_params.has_key?(:id_token_hint)
 
           URI.encode_www_form(logout_params)
         end

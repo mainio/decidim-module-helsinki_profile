@@ -107,10 +107,11 @@ RSpec.configure do |config|
           scope: form_data["scope"]
         }
         token_payload[:sub] = token_sub if respond_to?(:token_sub) && token_sub
+        idt_payload = id_token_payload if respond_to?(:id_token_payload)
 
         {
           headers: { "Content-Type" => "application/json" },
-          body: auth_server.token(token_payload).to_json
+          body: auth_server.token(token_payload, idt_payload).to_json
         }
       end
     end

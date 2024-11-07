@@ -118,18 +118,42 @@ module Decidim
           )
         end
 
-        def token(payload = {})
+        def token(payload = {}, id_token_data = nil)
           # We need to issue the same kid for the JSON::JWK key as the server keys
           # that are generated through JWT::JWK. We use JSON::JWK in the specs to
           # control better the signing of the keys.
           kid = JSON::JWK.new(jwk_rsa_keys.first, kid: jwks.first.kid)
-          jwt = jwt(payload).sign(kid)
+          access_token = jwt(payload).sign(kid)
+          id_token =
+            if id_token_data.is_a?(Hash)
+              JSON::JWT.new(
+                # https://openid.net/specs/openid-connect-core-1_0.html#IDToken
+                {
+                  iss: access_token[:iss],
+                  sub: access_token[:sub],
+                  aud: access_token[:aud],
+                  exp: access_token[:exp],
+                  iat: access_token[:iat],
+                  **id_token_data
+                }
+              ).sign(kid)
+            end
 
           expires_at = 30.minutes.from_now
-          Rack::OAuth2::AccessToken::Bearer.new(
-            access_token: jwt.to_s,
-            expires_in: (expires_at - Time.now.utc).to_i
-          )
+          token_attrs = {
+            client: "client", # required by OpenIDConnect::AccessToken
+            access_token: access_token.to_s,
+            expires_in: (expires_at - Time.now.utc).to_i,
+            id_token: id_token&.to_s
+          }
+          # Use OpenIDConnect::AccessToken instead of
+          # Rack::OAuth2::AccessToken::Bearer in order to use the `id_token`
+          # attribute.
+          OpenIDConnect::AccessToken.new(**token_attrs.compact).tap do |token|
+            [:client, :raw_attributes].each do |attr|
+              token.send(:remove_instance_variable, :"@#{attr}")
+            end
+          end
         end
 
         def userinfo(authorization)

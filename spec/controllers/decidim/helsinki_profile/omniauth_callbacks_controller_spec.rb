@@ -5,7 +5,6 @@ require "spec_helper"
 describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request do
   let(:organization) { create(:organization) }
 
-  # let(:uid) { SecureRandom.uuid }
   let(:email) { nil }
   let(:email_verified) { false }
   let(:name) { "#{given_name} #{last_name}" }
@@ -18,30 +17,6 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
   let(:profile) { create(:helsinki_profile_person) }
   let(:token_sub) { profile[:id] }
 
-  # let(:oauth_hash) do
-  #   {
-  #     provider: "helsinki",
-  #     uid: uid,
-  #     info: oauth_info,
-  #     extra: { raw_info: oauth_info.merge(oauth_extra) }
-  #   }
-  # end
-  # let(:oauth_info) do
-  #   {
-  #     email: email,
-  #     email_verified: email_verified,
-  #     name: name,
-  #     given_name: given_name,
-  #     last_name: last_name,
-  #     amr: amr
-  #   }
-  # end
-  # let(:oauth_extra) do
-  #   {
-  #     national_id_num: "010400A901X"
-  #   }
-  # end
-
   let(:request_args) do
     if session
       session.each do |key, val|
@@ -52,10 +27,12 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
     {
       env: {
         "rack.session" => request.session,
-        "rack.session.options" => request.session.options
+        "rack.session.options" => request.session.options,
+        "omniauth-helsinki.id_token" => id_token
       }
     }
   end
+  let(:id_token) { "omniauth_id_token" }
   let(:omniauth_state) { request.session["omniauth.state"] }
   let(:code) { SecureRandom.hex(16) }
 
@@ -74,7 +51,7 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
   end
 
   describe "GET /users/auth/helsinki/callback" do
-    context "when user isn't signed in" do
+    context "when user is not signed in" do
       let(:session) { nil }
 
       before do
@@ -103,6 +80,13 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
 
         expect(user.sign_in_count).to eq(1)
         expect(response).to redirect_to("/")
+      end
+
+      it "creates a session info object for the user" do
+        info = Decidim::HelsinkiProfile::SessionInfo.find_by(user: Decidim::User.last)
+
+        expect(info).to be_a(Decidim::HelsinkiProfile::SessionInfo)
+        expect(info.id_token).to eq(id_token)
       end
 
       context "when the session has a pending redirect" do
@@ -160,6 +144,9 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
       let!(:confirmed_user) do
         create(:user, :confirmed, organization:)
       end
+      let!(:previous_info) do
+        Decidim::HelsinkiProfile::SessionInfo.create(user: confirmed_user, id_token: "previous")
+      end
 
       before do
         sign_in confirmed_user
@@ -177,6 +164,15 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
 
         expect(authorization).not_to be_nil
         expect(authorization.user).to eq(confirmed_user)
+      end
+
+      it "creates a new session info object for the user" do
+        expect(Decidim::HelsinkiProfile::SessionInfo.find_by(id: previous_info.id)).to be_nil
+
+        info = Decidim::HelsinkiProfile::SessionInfo.find_by(user: Decidim::User.last)
+
+        expect(info).to be_a(Decidim::HelsinkiProfile::SessionInfo)
+        expect(info.id_token).to eq(id_token)
       end
 
       it "redirects to the root path" do
@@ -231,7 +227,7 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
           name: "helsinki_idp"
         )
         expect(authorization).to be_nil
-        expect(response).to redirect_to("/users/auth/helsinki/logout")
+        expect(response).to redirect_to("/users/auth/helsinki/logout?id_token_hint=#{id_token}")
         expect(flash[:alert]).to eq(
           "Another user has already been identified using this identity. Please sign out and sign in again directly using Helsinki profile."
         )

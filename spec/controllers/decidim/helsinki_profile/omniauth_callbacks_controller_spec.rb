@@ -32,9 +32,8 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
     }
   end
   let(:omniauth_state) { request.session["omniauth.state"] }
-  let(:omniauth_nonce) { request.session["omniauth.nonce"] }
   let(:code) { SecureRandom.hex(16) }
-  let(:id_token_payload) { { nonce: omniauth_nonce, groups: ["testing"] } }
+  let(:id_token_payload) { { groups: ["testing"] } }
 
   before do
     profile_api.register_profile(profile)
@@ -109,7 +108,7 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
       context "when the id token is very long" do
         # Generate a payload of at least 4kB.
         let(:id_token_payload) do
-          { nonce: omniauth_nonce, groups: 4.times.map { |num| (97 + num).chr * 1024 } }
+          { groups: 4.times.map { |num| (97 + num).chr * 1024 } }
         end
 
         it "does not cause an exception" do

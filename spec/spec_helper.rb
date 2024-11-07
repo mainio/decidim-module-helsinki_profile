@@ -104,10 +104,16 @@ RSpec.configure do |config|
 
         token_payload = {
           aud: Decidim::HelsinkiProfile.omniauth_secrets[:auth_client_id],
+          sub: try(:token_sub),
           scope: form_data["scope"]
-        }
-        token_payload[:sub] = token_sub if respond_to?(:token_sub) && token_sub
-        idt_payload = id_token_payload if respond_to?(:id_token_payload)
+        }.compact
+        idt_payload =
+          if respond_to?(:id_token_payload)
+            # If request has been initiated in the spec, fetch the session
+            # variable from there.
+            session = self.request.try(:session) || {}
+            { nonce: session["omniauth.nonce"] }.compact.merge(id_token_payload)
+          end
 
         {
           headers: { "Content-Type" => "application/json" },

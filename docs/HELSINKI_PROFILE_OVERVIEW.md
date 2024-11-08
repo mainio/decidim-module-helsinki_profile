@@ -82,6 +82,15 @@ authentication service, it can confuse users and therefore cause accessibility
 issues. Therefore, the default OmniAuth strategy has been extended within this
 integration to support this feature.
 
+The `id_token` returned from the authentication request has to be passed to the
+logout endpoint at the authentication server (`end_session_endpoint`) in order
+for the authentication server to detect the correct user session. According to
+received information, the length of this token can be over 16kB but less than
+32kB because for the city employees, the token may include the user's groups.
+Therefore, this token should not be stored in cookies which have a length limit
+of 4kB in many browsers. This integration stores the token specifically to each
+user in database in order to bypass the cookie length limit.
+
 Note that the email address returned by the OIDC user info data is verified by
 Helsinki profile itself. Not all underlying authentication services provide a
 verified email address (such as Suomi.fi) but Helsinki profile should take care

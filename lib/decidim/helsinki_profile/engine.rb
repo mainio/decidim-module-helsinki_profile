@@ -103,6 +103,7 @@ module Decidim
         config.to_prepare do
           Decidim::CreateOmniauthRegistration.include Decidim::HelsinkiProfile::CreateOmniauthRegistrationOverride
           Decidim::OmniauthRegistrationForm.include Decidim::HelsinkiProfile::OmniauthRegistrationFormExtensions
+          Decidim::DestroyAccount.include Decidim::HelsinkiProfile::DestroyAccountExtensions
         end
       end
 

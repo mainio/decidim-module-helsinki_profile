@@ -16,7 +16,7 @@ describe Decidim::HelsinkiProfile::Test::ProfileGraphql::Server do
       URI.parse(described_class.instance.uri),
       { query: "{ #{query} }" }.to_json,
       "Authorization" => "Bearer #{auth_token}",
-      "Content-Type": "application/json"
+      :"Content-Type" => "application/json"
     )
   end
   let(:response_json) { JSON.parse(response.body) }

@@ -1,3 +1,4 @@
+# rubocop:disable Rspec/SpecFilePathSuffix
 # frozen_string_literal: true
 
 require "spec_helper"
@@ -7,7 +8,7 @@ require "spec_helper"
 # Helsinki profile / Keycloak specific functionality within that strategy and
 # the custom strategy methods. This should ensure our customizations and the
 # basic flows also work when the underling strategy is changed.
-describe OmniAuth::Strategies::Helsinki do # rubocop:disable RSpec/FilePath
+describe OmniAuth::Strategies::Helsinki do
   include Rack::Test::Methods
   include OmniAuth::Test::StrategyTestCase
 
@@ -106,3 +107,4 @@ describe OmniAuth::Strategies::Helsinki do # rubocop:disable RSpec/FilePath
     end
   end
 end
+# rubocop:enable Rspec/SpecFilePathSuffix

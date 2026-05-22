@@ -20,7 +20,7 @@ module Decidim
               user_config.log_requests
               user_config.tag(name)
             end
-            @launcher = Launcher.new(conf, events: Puma::Events.stdio)
+            @launcher = Launcher.new(conf)
             @launcher.run
           end
 

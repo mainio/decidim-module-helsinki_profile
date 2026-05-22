@@ -309,22 +309,32 @@ describe Decidim::HelsinkiProfile::GdprApi::V1::ProfilesController do
 
       def export_value(key, value, record: false)
         if value.is_a?(Enumerable)
-          children =
-            if value.is_a?(Array)
-              value.map do |v|
-                export_value(key, v, record: true)
-              end
-            else
-              value.map do |k, v|
-                export_value(k, v)
-              end
-            end
           name = record ? key.to_s : key.to_s.pluralize
+          children = export_children(key, value)
           { "name" => name.upcase, "children" => children }
         else
-          exported_value = value.is_a?(Time) ? value.iso8601(3) : value
-          { "key" => key.to_s.upcase, "value" => exported_value }
+          { "key" => key.to_s.upcase, "value" => serialize_value(value) }
         end
+      end
+
+      def export_children(key, value)
+        if value.is_a?(Array)
+          value.map do |v|
+            export_value(key, v, record: true)
+          end
+        else
+          value.map do |k, v|
+            export_value(k, v)
+          end
+        end
+      end
+    end
+
+    def serialize_value(value)
+      case value
+      when Time then value.iso8601(3)
+      when BigDecimal then value.to_s
+      else value
       end
     end
 

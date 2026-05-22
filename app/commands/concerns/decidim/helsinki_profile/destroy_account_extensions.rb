@@ -36,6 +36,30 @@ module Decidim
           target_user.identities.destroy_all
         end
 
+        def destroy_user_versions
+          target_user.versions.find_each(&:destroy)
+        end
+
+        def destroy_user_private_exports
+          target_user.private_exports.find_each(&:destroy)
+        end
+
+        def destroy_user_access_grants
+          target_user.access_grants.find_each(&:destroy)
+        end
+
+        def destroy_user_access_tokens
+          target_user.access_tokens.find_each(&:destroy)
+        end
+
+        def destroy_user_reminders
+          target_user.reminders.find_each(&:destroy)
+        end
+
+        def destroy_user_notifications
+          target_user.notifications.find_each(&:destroy)
+        end
+
         def destroy_user_group_memberships
           Decidim::UserGroupMembership.where(user: target_user).destroy_all
         end

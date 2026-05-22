@@ -24,7 +24,7 @@ RSpec.configure do |config|
   config.before(:all) do
     # Silence the OmniAuth logger
     OmniAuth.config.request_validation_phase = proc {}
-    OmniAuth.config.logger = Logger.new("/dev/null")
+    OmniAuth.config.logger = Logger.new(File::NULL)
 
     # Configure the HelsinkiProfile module
     Decidim::HelsinkiProfile.configure do |hpconfig|

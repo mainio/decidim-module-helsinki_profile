@@ -21,13 +21,13 @@ module Decidim
           @client_secret = client_secret
         end
 
-        def authorize_header!(header, **kwargs)
+        def authorize_header!(header, **)
           raise InvalidTokenError if header.blank?
 
           match = header.match(/Bearer\s+(.+)/)
           raise InvalidTokenError unless match
 
-          authorize!(match[1], **kwargs)
+          authorize!(match[1], **)
         end
 
         # See:

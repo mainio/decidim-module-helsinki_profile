@@ -5,10 +5,10 @@ module Decidim
     module Test
       module ProfileGraphql
         class AuthorizedField < GraphQL::Schema::Field
-          def initialize(*args, required_permission: nil, **kwargs, &block)
+          def initialize(*, required_permission: nil, **, &)
             @required_permission = required_permission
             # Pass on the default args:
-            super(*args, **kwargs, &block)
+            super(*, **, &)
           end
 
           def to_graphql

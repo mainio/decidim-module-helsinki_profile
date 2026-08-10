@@ -15,6 +15,7 @@ en:
             profile_api_uri: Profile GraphQL API server address, URI
             profile_api_client_id: Profile GraphQL API client ID
     helsinki_profile:
+      delete_reason: User deleted because of inactivity
       omniauth_callbacks:
         failure:
           already_authorized: Another user has already authorized themselves with the same identity.

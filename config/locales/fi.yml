@@ -15,6 +15,7 @@ fi:
             profile_api_uri: Profiilin GraphQL-rajapinnan osoite, URI
             profile_api_client_id: Profiilin GraphQL-rajapinnan asiakkaan tunniste (Client ID)
     helsinki_profile:
+      delete_reason: Käyttäjä poistettiin käyttäjätilin passiivisuuden takia
       omniauth_callbacks:
         failure:
           already_authorized: Toinen käyttäjä on jo tunnistautunut samalla henkilöllisyydellä.

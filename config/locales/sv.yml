@@ -15,6 +15,7 @@ sv:
             profile_api_uri: Profil GraphQL API-serveradress, URI
             profile_api_client_id: Profil GraphQL API-klient-ID (Client ID)
     helsinki_profile:
+      delete_reason: Användare borttagen på grund av inaktivitet
       omniauth_callbacks:
         failure:
           already_authorized: En annan användare har redan auktoriserat sig med samma identitet.

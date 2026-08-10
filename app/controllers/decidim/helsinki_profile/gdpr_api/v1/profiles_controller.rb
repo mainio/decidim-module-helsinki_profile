@@ -26,7 +26,7 @@ module Decidim
             end
 
             Decidim::DestroyAccount.call(
-              Decidim::DeleteAccountForm.from_params({ delete_reason: I18n.t("decidim.cleaner.delete_reason") }), target_user: profile_user
+              Decidim::DeleteAccountForm.from_params({ delete_reason: I18n.t("decidim.helsinki_profile.delete_reason") }), target_user: profile_user
             ) do
               on(:ok) { success }
               on(:invalid) { destroy_error }

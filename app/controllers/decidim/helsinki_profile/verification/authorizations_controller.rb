@@ -11,7 +11,7 @@ module Decidim
           # re-authorizations not to work as the authorization already exists.
           # In case the user wants to re-authorize themselves, they can just
           # hit this endpoint again.
-          redirect_to decidim.user_helsinki_omniauth_authorize_path
+          redirect_to decidim_helsinki_profile.user_helsinki_omniauth_authorize_path
         end
       end
     end

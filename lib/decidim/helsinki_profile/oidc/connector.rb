@@ -56,9 +56,11 @@ module Decidim
           raise InvalidTokenError unless id_token
 
           scope = id_token.raw_attributes[:scope]
+
           raise InvalidScopeError if scope.blank?
 
           authorized_scopes = scope.is_a?(Array) ? scope : scope.split(/\s+/)
+
           raise InvalidScopeError unless authorized_scopes.include?(requested_scope)
         end
 

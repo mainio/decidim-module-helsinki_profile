@@ -28,7 +28,7 @@ module Decidim
           end
 
           def execute(query, variables: {}, operation_name: nil, current_profile: nil)
-            context = { current_profile:, permissions: }
+            context = { current_profile:, permissions:, scopes: ::Doorkeeper::OAuth::Scopes.from_array(["api:read"]) }
 
             Schema.execute(query, variables:, operation_name:, context:)
           end

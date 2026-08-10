@@ -38,7 +38,7 @@ describe Decidim::HelsinkiProfile::GdprApi::V1::ProfilesController do
     }
   end
   let(:pseudonymized_pin) do
-    Digest::MD5.hexdigest("FI:010400A901X:#{Rails.application.secrets.secret_key_base}")
+    Digest::MD5.hexdigest("FI:010400A901X:#{Rails.application.secret_key_base}")
   end
   let(:jwt) { oidc_server.jwt({ aud: gdpr_audience, sub: profile_uuid, scope: gdpr_scopes }.merge(jwt_payload)).sign(jwt_key) }
   let(:gdpr_audience) { Decidim::HelsinkiProfile.omniauth_secrets[:gdpr_client_id] }

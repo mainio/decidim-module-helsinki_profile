@@ -19,7 +19,7 @@ module Decidim
           auth_server = Decidim::HelsinkiProfile::Test::OidcServer.get(:auth)
           profile_api = Decidim::HelsinkiProfile::Test::ProfileGraphql::Server.instance
 
-          Rails.application.secrets.omniauth = {
+          Rails.application.credentials.omniauth = {
             helsinki: {
               enabled: true,
               auth_uri: auth_server.uri,

@@ -79,7 +79,7 @@ module Decidim
           return if raw_info[:sub].blank?
 
           @person_identifier_digest ||= Digest::MD5.hexdigest(
-            "#{raw_info[:sub]}:#{Rails.application.secrets.secret_key_base}"
+            "#{raw_info[:sub]}:#{Rails.application.secret_key_base}"
           )
         end
 
@@ -96,7 +96,7 @@ module Decidim
           return if national_id_num.blank?
 
           @national_id_digest ||= Digest::MD5.hexdigest(
-            "FI:#{national_id_num}:#{Rails.application.secrets.secret_key_base}"
+            "FI:#{national_id_num}:#{Rails.application.secret_key_base}"
           )
         end
 

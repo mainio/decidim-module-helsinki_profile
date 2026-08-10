@@ -42,7 +42,7 @@ namespace :decidim do
       unless authorization
         national_id_num = Henkilotunnus::Hetu.generate.pin
         national_id_digest = Digest::MD5.hexdigest(
-          "FI:#{national_id_num}:#{Rails.application.secrets.secret_key_base}"
+          "FI:#{national_id_num}:#{Rails.application.secret_key_base}"
         )
         hetu = Henkilotunnus::Hetu.new(national_id_num)
 

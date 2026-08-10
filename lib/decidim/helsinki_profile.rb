@@ -139,7 +139,7 @@ module Decidim
     def self.omniauth_secrets
       @omniauth_secrets ||= begin
         configured_key = auth_service_name.to_sym
-        Rails.application.secrets[:omniauth][configured_key] || Rails.application.secrets[:omniauth][:helsinki]
+        Rails.application.credentials.dig(:omniauth, configured_key) || Rails.application.credentials.dig(:omniauth, :helsinki)
       end
     end
 
@@ -149,7 +149,9 @@ module Decidim
       service_name = auth_service_name.to_sym
       return if service_name == :helsinki
 
-      Rails.application.secrets[:omniauth].transform_keys! do |key|
+      omniauth_credentials = Rails.application.credentials.omniauth || {}
+
+      omniauth_credentials.to_h.transform_keys do |key|
         key == :helsinki ? service_name : key
       end
     end

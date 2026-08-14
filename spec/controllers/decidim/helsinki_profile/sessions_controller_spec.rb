@@ -42,16 +42,16 @@ describe Decidim::HelsinkiProfile::SessionsController, type: :request do
     end
 
     it "destroys the user session" do
-      expect(controller.current_user).to eq(current_user)
-
       post("/users/sign_out", **request_args)
-      expect(controller.current_user).to be_nil
+
+      get("/account")
+      expect(response).to redirect_to("/en/users/sign_in")
     end
 
     it "adds the id_token_hint parameter to the logout request" do
       post("/users/sign_out", **request_args)
 
-      expect(response).to redirect_to("/users/auth/helsinki/logout?id_token_hint=#{id_token}")
+      expect(response).to redirect_to("/users/auth/helsinki/logout?id_token_hint=#{id_token}&locale=en")
     end
 
     it "destroys the session info" do

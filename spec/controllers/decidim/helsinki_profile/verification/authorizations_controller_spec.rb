@@ -15,7 +15,7 @@ describe Decidim::HelsinkiProfile::Verification::AuthorizationsController do
   describe "GET new" do
     it "redirects the user" do
       get :new
-      expect(response).to redirect_to("/users/auth/helsinki")
+      expect(response).to redirect_to("/users/auth/helsinki?locale=en")
     end
   end
 end

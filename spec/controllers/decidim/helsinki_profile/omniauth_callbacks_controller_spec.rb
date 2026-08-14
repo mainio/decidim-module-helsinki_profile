@@ -78,7 +78,7 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
         user = Decidim::User.last
 
         expect(user.sign_in_count).to eq(1)
-        expect(response).to redirect_to("/")
+        expect(response).to redirect_to("/en")
       end
 
       it "creates a session info object for the user" do
@@ -115,7 +115,7 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
           user = Decidim::User.last
 
           expect(user.sign_in_count).to eq(1)
-          expect(response).to redirect_to("/")
+          expect(response).to redirect_to("/en")
         end
       end
     end
@@ -196,7 +196,7 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
       end
 
       it "redirects to the root path" do
-        expect(response).to redirect_to("/")
+        expect(response).to redirect_to("/en")
       end
 
       context "when the session has a pending redirect" do
@@ -256,7 +256,7 @@ describe Decidim::HelsinkiProfile::OmniauthCallbacksController, type: :request d
 
         expect(redirect_uri.host).to eq(organization.host)
         expect(redirect_uri.path).to eq("/users/auth/helsinki/logout")
-        expect(redirect_params).to match(id_token_hint: /\A[^\s]+\z/)
+        expect(redirect_params).to match(id_token_hint: /\A[^\s]+\z/, locale: "en")
         expect(flash[:alert]).to eq(
           "Another user has already been identified using this identity. Please sign out and sign in again directly using Helsinki profile."
         )

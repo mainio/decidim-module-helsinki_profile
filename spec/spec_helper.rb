@@ -15,6 +15,12 @@ require "decidim/helsinki_profile/test/oidc_server"
 require "decidim/helsinki_profile/test/profile_graphql"
 require "decidim/dev/test/base_spec_helper"
 
+class TestMailer < ApplicationMailer
+  def test_email(options)
+    mail(options)
+  end
+end
+
 RSpec.configure do |config|
   # Make it possible to sign in and sign out the user in the request type specs.
   # This is needed because we need the request type spec for the omniauth
@@ -121,10 +127,7 @@ RSpec.configure do |config|
       end
     end
 
-    stub_request(:get, discovery.authorization_endpoint).to_return do |request|
-      puts "AUTHORIZATION"
-      puts request.inspect
-
+    stub_request(:get, discovery.authorization_endpoint).to_return do |_request|
       {
         status: 302,
         headers: { "Location" => "http://1.lvh.me/callback_uri" },

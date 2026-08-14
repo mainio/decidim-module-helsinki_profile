@@ -7,7 +7,7 @@ describe Decidim::HelsinkiProfile::ProfileApi::Client do
   let(:auth_server) { Decidim::HelsinkiProfile::Test::OidcServer.get(:auth) }
   let(:access_token) do
     auth_server.token(
-      scope: Decidim::HelsinkiProfile.auth_scopes.map(&:to_s).join(" "),
+      scope: Decidim::HelsinkiProfile.auth_scopes.join(" "),
       sub: profile[:id]
     )
   end

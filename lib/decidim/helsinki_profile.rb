@@ -17,7 +17,13 @@ module Decidim
   module HelsinkiProfile
     autoload :FormBuilder, "decidim/helsinki_profile/form_builder"
 
-    include ActiveSupport::Configurable
+    class << self
+      def config = self
+
+      def configure
+        yield self
+      end
+    end
 
     # Defines the email domain for the auto-generated email addresses for the
     # user accounts. This is only used if the user does not have an email
@@ -30,29 +36,23 @@ module Decidim
     # registration.
     #
     # In case this is not defined, the default is the organization's domain.
-    config_accessor :auto_email_domain
+    mattr_accessor :auto_email_domain
 
     # The requested OpenID scopes for the Omniauth strategy. The data returned
     # by the authentication service can differ depending on the defined scopes.
     #
     # See: https://openid.net/specs/openid-connect-basic-1_0.html#Scopes
-    config_accessor :auth_scopes do
-      [:openid, :email, :profile]
-    end
+    mattr_accessor :auth_scopes, default: [:openid, :email, :profile]
 
     # Set this to `false` in case the Helsinki profile handover has not been
     # completed. Otherwise the authentication requests may fail against the
     # legacy authentication server due to invalid scopes.
-    config_accessor :profile_authorization do
-      true
-    end
+    mattr_accessor :profile_authorization, default: true
 
     # Set this to `false` in case the Helsinki profile authentication server is
     # used only for AD/Entra authentications. When set to `true` (default), the
     # GDPR API endpoints are added to the application.
-    config_accessor :gdpr_api_enabled do
-      true
-    end
+    mattr_accessor :gdpr_api_enabled, default: true
 
     # Allows changing the auth service name in case we need to perform a
     # "handover" process from the legacy authentication server. Once Helsinki
@@ -60,30 +60,22 @@ module Decidim
     #
     # This needs to happen within the `:before_configuration` hook inside the
     # application.
-    config_accessor :auth_service_name do
-      "helsinki"
-    end
+    mattr_accessor :auth_service_name, default: "helsinki"
 
     # Allows customizing the authorization workflow e.g. for adding custom
     # workflow options or configuring an action authorizer for the
     # particular needs.
-    config_accessor :workflow_configurator do
-      lambda do |workflow|
-        workflow.expires_in = 90.days
-      end
-    end
+    mattr_accessor :workflow_configurator, default: lambda { |workflow|
+      workflow.expires_in = 90.days
+    }
 
     # Allows customizing parts of the authentication flow such as validating
     # the authorization data before allowing the user to be authenticated.
-    config_accessor :authenticator_class do
-      Decidim::HelsinkiProfile::Authentication::Authenticator
-    end
+    mattr_accessor :authenticator_class, default: Decidim::HelsinkiProfile::Authentication::Authenticator
 
     # Allows customizing how the authorization metadata gets collected from
     # the OAuth attributes passed from the authorization endpoint.
-    config_accessor :metadata_collector_class do
-      Decidim::HelsinkiProfile::Verification::MetadataCollector
-    end
+    mattr_accessor :metadata_collector_class, default: Decidim::HelsinkiProfile::Verification::MetadataCollector
 
     # The user's email is confirmed at Helsinki profile's side, so we can trust
     # that the email always belongs to the user. Therefore, Helsinki profile
@@ -92,9 +84,7 @@ module Decidim
     #
     # This feature may become useful in the future in case there will be
     # alternative authentication flows through the Helsinki profile.
-    config_accessor :untrusted_email_providers do
-      []
-    end
+    mattr_accessor :untrusted_email_providers, default: []
 
     def self.configured?
       return false if omniauth_secrets.blank?

@@ -1,2 +1,10 @@
 inherit_gem:
   decidim-dev: rubocop-decidim.yml
+
+Decidim/EnforcePermissionTo:
+  Exclude:
+    - "app/controllers/concerns/decidim/helsinki_profile/session_management.rb"
+    - "app/controllers/decidim/helsinki_profile/omniauth_callbacks_controller.rb"
+    - "app/controllers/decidim/helsinki_profile/sessions_controller.rb"
+    - "app/controllers/decidim/helsinki_profile/gdpr_api/v1/profiles_controller.rb"
+    - "app/controllers/decidim/helsinki_profile/verification/authorizations_controller.rb"

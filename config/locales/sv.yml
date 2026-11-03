@@ -12,6 +12,7 @@ sv:
             auth_client_id: Autentiseringsklient-ID (Client ID)
             auth_client_secret: Autentiseringsklienthemlighet (Client secret)
             gdpr_client_id: GDPR-autentiseringsklient-ID (Client ID)
+            gdpr_client_secret: GDPR-autentiseringsklienthemlighet (Client secret)
             profile_api_uri: Profil GraphQL API-serveradress, URI
             profile_api_client_id: Profil GraphQL API-klient-ID (Client ID)
     helsinki_profile:
